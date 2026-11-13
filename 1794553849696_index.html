@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CORRIGE FAUTE</title>
+<style>
+:root{--bg:#f6f4ff;--card:#fff;--tx:#1d1a33;--mut:#7a7694;--pri:#5b3df5;--pri2:#9b5cf6;--acc:#ff9f1c;--ok:#16a34a;--err:#e11d48;--bd:#e7e3fb;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#14112a;--card:#1f1b3d;--tx:#f2f0ff;--mut:#a6a1c9;--bd:#33305c;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+.page{flex:1;display:none;flex-direction:column;padding:18px;overflow-y:auto}
+.page.on{display:flex}
+h2{margin:0 0 12px;font-size:20px}
+input,select{width:100%;font-size:16px;color:var(--tx);outline:none}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:14px 18px;font-size:16px;cursor:pointer;background:var(--pri);color:#fff}
+button:disabled{opacity:.5}
+.full{width:100%;margin-top:12px}
+.rh{padding:46px 20px 60px;text-align:center;color:#fff;background:linear-gradient(135deg,#3b1fb8,#7c3aed 60%,#f97316);border-radius:0 0 40px 40px}
+.logo{width:84px;height:84px;margin:0 auto 14px;border-radius:24px;background:#fff;display:grid;place-items:center;font-size:40px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.rt{font-size:26px;font-style:italic;font-weight:800;font-family:Georgia,serif}
+.rs{opacity:.92;margin-top:6px}
+.rf{margin:-30px 14px 20px;padding:4px 18px 22px;background:var(--card);border-radius:24px;box-shadow:0 8px 24px rgba(91,61,245,.12);position:relative}
+.rf label{display:block;margin:16px 0 6px;font-size:13px;letter-spacing:1px;color:var(--mut);font-weight:700}
+.fld{display:flex;align-items:center;gap:6px;background:var(--bg);border:2px solid var(--bd);border-radius:14px;padding:0 12px}
+.fld:focus-within{border-color:var(--pri)}
+.fld input,.fld select{border:0;background:transparent;padding:14px 4px}
+.eyeb{background:none;color:var(--mut);padding:4px;font-size:18px}
+.sec{margin-top:20px;border:1px solid var(--bd);border-radius:18px;padding:14px;background:var(--bg)}
+.sh{display:flex;align-items:center;gap:10px}.sh>div{flex:1}.sh small{display:block;font-size:11px;letter-spacing:1px;color:var(--mut);font-weight:700}
+.si{width:42px;height:42px;border-radius:12px;background:rgba(91,61,245,.14);display:grid;place-items:center;font-size:20px}
+.req{font-size:12px;font-weight:700;color:var(--acc)}
+.chk{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px;border:1px solid var(--bd);border-radius:14px;background:var(--card);cursor:pointer}
+.bx{width:30px;height:30px;flex:none;border:2px solid var(--mut);border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800}
+.chk.on .bx{background:var(--ok);border-color:var(--ok)}.chk.on .bx::after{content:"✓"}
+.ct{flex:1}.ct b{display:block;font-size:15px}.ct small{color:var(--mut)}
+.cl{font-size:12px;font-weight:700;color:var(--pri);text-align:right;max-width:80px}
+.sf{display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--mut)}
+.msg{margin-top:12px;font-weight:700;min-height:22px}.rf .msg{text-align:center}
+.ok{color:var(--ok)}.ko{color:var(--err)}.warn{color:#c2410c}
+.lnk{background:none;color:var(--pri);padding:4px;font-size:14px;text-decoration:underline}
+.hdr{display:flex;align-items:center;gap:12px}
+.av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#ff6b6b);display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff}
+.hi{flex:1}.hi small{color:var(--mut);display:block}.hi b{font-size:18px}
+.badge{font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;background:rgba(255,159,28,.2);color:var(--acc)}
+.bal{margin-top:16px;border-radius:24px;padding:22px;color:#fff;background:linear-gradient(135deg,var(--pri),var(--pri2));box-shadow:0 10px 24px rgba(91,61,245,.3)}
+.bal small{opacity:.85;letter-spacing:1px;font-size:12px}
+.amt{display:flex;align-items:baseline;gap:8px;margin-top:6px}.amt b{font-size:40px;font-weight:800}.amt span{opacity:.9;font-weight:700}
+.eye{margin-left:auto;background:rgba(255,255,255,.2);padding:6px 10px}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.act{background:var(--card);border:1px solid var(--bd);color:var(--tx);padding:14px 6px;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;margin-top:14px}
+.note{font-size:13px;color:var(--mut);line-height:1.4}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.stats .card{margin:0;text-align:center}
+.stats b{display:block;font-size:22px;color:var(--pri)}.stats span{font-size:13px;color:var(--mut)}
+.bonus{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#ff9f1c,#ff6b6b);color:#fff;border:0}
+.bonus div{flex:1}.bonus b{font-size:17px}.bonus small{display:block;opacity:.9}.bonus button{background:#fff;color:#e8590c}
+.q{font-size:19px;line-height:1.4;font-weight:600}.tag{font-size:13px;color:var(--mut);margin-bottom:8px}
+.opt{display:block;width:100%;margin-top:10px;text-align:left;background:var(--card);color:var(--tx);border:2px solid var(--bd)}
+.opt.good{background:var(--ok);border-color:var(--ok);color:#fff;opacity:1}.opt.bad{background:var(--err);border-color:var(--err);color:#fff;opacity:1}
+.item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--bd)}
+.item:last-child{border:0}.item small{color:var(--mut);display:block}.item b{color:var(--ok)}
+.nav{display:flex;border-top:1px solid var(--bd);background:var(--card);padding:6px 6px 8px}
+.nav button{flex:1;background:none;color:var(--mut);font-size:11px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
+.nav button i{font-style:normal;font-size:22px}.nav button.on{color:var(--pri);background:rgba(91,61,245,.12)}
+.hide{display:none!important}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;max-width:88%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <section id="p1" class="page on" style="padding:0">
+    <div class="rh"><div class="logo">✍️</div><div class="rt">CRÉE UN COMPTE</div><div class="rs">Rejoignez CORRIGE FAUTE</div></div>
+    <div class="rf">
+      <label>NOM COMPLET</label><div class="fld"><input id="nom" maxlength="40" placeholder="Votre nom complet" autocomplete="name"></div>
+      <label>ADRESSE EMAIL</label><div class="fld"><input id="mail" type="email" placeholder="votre@email.com" autocomplete="email"></div>
+      <label>PAYS</label><div class="fld"><select id="pays"><option value="">Choisir un pays</option></select></div>
+      <label>NUMÉRO DE TÉLÉPHONE</label><div class="fld"><input id="tel" type="tel" placeholder="12 345 678" autocomplete="tel"></div>
+      <label>MOT DE PASSE</label><div class="fld"><input id="pw" type="password" placeholder="Créez un mot de passe" autocomplete="new-password"><button class="eyeb" data-t="pw">👁</button></div>
+      <label>CONFIRMER LE MOT DE PASSE</label><div class="fld"><input id="pw2" type="password" placeholder="Répétez votre mot de passe" autocomplete="new-password"><button class="eyeb" data-t="pw2">👁</button></div>
+      <div class="sec">
+        <div class="sh"><span class="si">🔐</span><div><small>PROTECTION DU COMPTE</small><b>Vérification de sécurité</b></div><span class="req" id="req">● Requise</span></div>
+        <div class="chk" id="chk"><span class="bx"></span><div class="ct"><b>Confirmez que vous êtes bien humain</b><small>Un contrôle rapide protège votre inscription.</small></div><span class="cl">Cliquer pour continuer</span></div>
+        <div class="sf"><span>🛡 Contrôle respectueux de votre vie privée</span><span>CORRIGE FAUTE</span></div>
+      </div>
+      <button class="full" id="go">Créer mon compte →</button>
+      <div class="msg warn" id="e1"></div>
+      <div class="note" style="text-align:center">Déjà un compte ? <button class="lnk" id="toLog">Se connecter</button></div>
+    </div>
+  </section>
+
+  <section id="plog" class="page" style="padding:0">
+    <div class="rh"><div class="logo">✍️</div><div class="rt">CONNEXION</div><div class="rs">Content de te revoir sur CORRIGE FAUTE</div></div>
+    <div class="rf">
+      <label>ADRESSE EMAIL</label><div class="fld"><input id="lmail" type="email" placeholder="votre@email.com" autocomplete="email"></div>
+      <label>MOT DE PASSE</label><div class="fld"><input id="lpw" type="password" placeholder="Votre mot de passe" autocomplete="current-password"><button class="eyeb" data-t="lpw">👁</button></div>
+      <button class="full" id="lgo">Se connecter →</button>
+      <div class="msg ko" id="le"></div>
+      <div class="note" style="text-align:center">Pas encore de compte ? <button class="lnk" id="toReg">Créer un compte</button></div>
+    </div>
+  </section>
+
+  <section id="home" class="page">
+    <div class="hdr"><div class="av" id="av"></div><div class="hi"><small>Bonjour</small><b id="who"></b></div><span class="badge">Inactif</span></div>
+    <div class="bal">
+      <div style="display:flex;align-items:center"><small>SOLDE DISPONIBLE</small><button class="eye" id="eye">👁</button></div>
+      <div class="amt"><b id="bal">0</b><span>FCFA</span></div>
+    </div>
+    <div class="acts">
+      <button class="act" id="aTr"><i>📤</i>Transfert</button>
+      <button class="act" id="aRe"><i>📥</i>Retrait</button>
+      <button class="act" id="aTv"><i>💼</i>Travaux</button>
+    </div>
+    <div class="card bonus"><div><b>Bonus du jour</b><small>300 – 800 FCFA · une fois par jour</small></div><button id="bon">Collecter</button></div>
+    <div class="stats">
+      <div class="card"><b id="sOk">0</b><span>Bonnes réponses</span></div>
+      <div class="card"><b id="sGain">0</b><span>Gains (FCFA)</span></div>
+    </div>
+    <div class="card note">🎮 CORRIGE FAUTE est un jeu. Les FCFA affichés sont fictifs, ils servent seulement à animer la partie et ne peuvent pas être retirés.</div>
+  </section>
+
+  <section id="work" class="page">
+    <h2>Travaux</h2>
+    <div class="card" style="margin-top:0"><div class="tag" id="tag"></div><div class="q" id="q"></div><div class="msg" id="msg"></div></div>
+    <div id="opts"></div>
+    <button class="full hide" id="next">Phrase suivante</button>
+  </section>
+
+  <section id="team" class="page"><h2>Équipe</h2><div class="card note" style="margin-top:0">👥 Bientôt disponible : défie tes amis et compare vos scores.</div></section>
+  <section id="hist" class="page"><h2>Historique</h2><div class="card" style="margin-top:0" id="hl"></div></section>
+
+  <section id="prof" class="page">
+    <h2>Profil</h2>
+    <div class="card" style="margin-top:0">
+      <div class="hdr"><div class="av" id="av2"></div><div class="hi"><small>Nom du compte</small><b id="who2"></b></div></div>
+      <div class="note" id="inf" style="margin-top:10px"></div>
+      <button class="full" id="chg">Changer de nom</button>
+      <button class="full" id="out" style="background:var(--mut)">Se déconnecter</button>
+    </div>
+  </section>
+
+  <nav class="nav hide" id="nav">
+    <button data-p="home" class="on"><i>🏠</i>Accueil</button>
+    <button data-p="work"><i>💼</i>Travaux</button>
+    <button data-p="team"><i>👥</i>Équipe</button>
+    <button data-p="hist"><i>🕘</i>Historique</button>
+    <button data-p="prof"><i>👤</i>Profil</button>
+  </nav>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+
+const app=initializeApp({
+  apiKey:"AIzaSyBkd1bZ-QNFgy7l2FtdDFXhoPEmPvacPfQ",
+  authDomain:"corrige-faute.firebaseapp.com",
+  projectId:"corrige-faute",
+  storageBucket:"corrige-faute.firebasestorage.app",
+  messagingSenderId:"278013516103",
+  appId:"1:278013516103:web:5d247c5f56e453ebdbd462"
+});
+const auth=getAuth(app),db=getFirestore(app);
+
+const Q=[
+["Quelle est la capitale du Kenya ?",["Nairobi","Mombasa","Kisumu"]],
+["Quel est le plus long fleuve d’Afrique ?",["Le Nil","Le Congo","Le Niger"]],
+["Quel est le plus grand pays d’Afrique par sa superficie ?",["L’Algérie","La RD Congo","Le Soudan"]],
+["Quelle est la capitale de l’Égypte ?",["Le Caire","Alexandrie","Louxor"]],
+["Quel grand désert se trouve au nord de l’Afrique ?",["Le Sahara","Le Kalahari","Le Namib"]],
+["Quelle est la capitale du Sénégal ?",["Dakar","Saint-Louis","Thiès"]],
+["Quel est le pays le plus peuplé d’Afrique ?",["Le Nigeria","L’Éthiopie","L’Égypte"]],
+["Quelle est la capitale du Ghana ?",["Accra","Kumasi","Tamale"]],
+["Quelle est la capitale du Nigeria ?",["Abuja","Lagos","Kano"]],
+["Les chutes Victoria sont à la frontière de la Zambie et de quel pays ?",["Le Zimbabwe","Le Malawi","Le Botswana"]],
+["Nelson Mandela fut président de quel pays ?",["L’Afrique du Sud","Le Zimbabwe","La Namibie"]],
+["Quelle est la capitale politique de la Côte d’Ivoire ?",["Yamoussoukro","Abidjan","Bouaké"]],
+["Quel est le plus grand lac d’Afrique ?",["Le lac Victoria","Le lac Tanganyika","Le lac Tchad"]],
+["Quelle est la capitale du Maroc ?",["Rabat","Casablanca","Marrakech"]],
+["Quelle est la monnaie de l’Afrique du Sud ?",["Le rand","Le naira","Le shilling"]],
+["Quel océan borde Madagascar ?",["L’océan Indien","L’océan Atlantique","L’océan Pacifique"]],
+["Quelle est la capitale de l’Éthiopie ?",["Addis-Abeba","Asmara","Khartoum"]],
+["Quelle est la capitale du Mali ?",["Bamako","Tombouctou","Gao"]],
+["Quel est le plus haut sommet d’Afrique ?",["Le Kilimandjaro","Le mont Kenya","Le mont Cameroun"]],
+["Quelle langue est très parlée en Afrique de l’Est ?",["Le swahili","Le wolof","Le zoulou"]],
+["Quelle est la capitale de l’Algérie ?",["Alger","Oran","Constantine"]],
+["Quelle est la capitale du Cameroun ?",["Yaoundé","Douala","Garoua"]],
+["Dans quel pays se trouve la ville de Tombouctou ?",["Le Mali","Le Niger","La Mauritanie"]],
+["Combien de pays reconnus compte l’Afrique ?",["54","48","62"]],
+["Quelle est la capitale officielle du Bénin ?",["Porto-Novo","Cotonou","Abomey"]]
+];
+const OKS=["Bravo ! Excellente réponse, tu gagnes 500 FCFA 🎉","Bonne réponse ! Tu connais bien l’Afrique, +500 FCFA 👏","Exact ! Quel champion, +500 FCFA 🏆"];
+const KOS=["Dommage, mauvaise réponse. Tu ne gagnes rien cette fois.","Raté ! Pas de gain pour cette question.","Ce n’est pas la bonne réponse, 0 FCFA. Courage pour la suivante !"];
+const C={TG:["🇹🇬","Togo","+228"],BF:["🇧🇫","Burkina Faso","+226"],CI:["🇨🇮","Côte d’Ivoire","+225"],BJ:["🇧🇯","Bénin","+229"],CM:["🇨🇲","Cameroun","+237"]};
+const ERR={"auth/email-already-in-use":"Un compte existe déjà avec cet email. Connecte-toi.","auth/invalid-credential":"Email ou mot de passe incorrect.","auth/invalid-email":"Adresse email invalide.","auth/weak-password":"Mot de passe trop faible (6 caractères minimum).","auth/network-request-failed":"Pas de connexion internet.","auth/too-many-requests":"Trop d’essais. Réessaie plus tard."};
+
+const $=i=>document.getElementById(i);
+const LIMIT=15,PAGES=["p1","plog","home","work","team","hist","prof"];
+let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
+const one=a=>a[Math.floor(Math.random()*a.length)];
+const fr=x=>ERR[x&&x.code]||"Une erreur est survenue. Réessaie.";
+const today=()=>Math.floor((Date.now()+off)/864e5);
+const left=()=>LIMIT-(U.dayN===today()?U.count:0);
+const err=(id,t)=>{$(id).className="msg ko";$(id).textContent=t};
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2600)}
+(async()=>{try{const r=await fetch(location.href,{method:"HEAD",cache:"no-store"});const d=r.headers.get("date");if(d)off=new Date(d).getTime()-Date.now()}catch(e){}})();
+
+Object.keys(C).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=C[k][0]+" "+C[k][1]+" ("+C[k][2]+")";$("pays").appendChild(o)});
+document.querySelectorAll(".eyeb").forEach(b=>b.onclick=()=>{const i=$(b.dataset.t);i.type=i.type==="password"?"text":"password"});
+
+function show(id){PAGES.forEach(p=>$(p).classList.toggle("on",p===id));$("nav").classList.toggle("hide",id==="p1"||id==="plog")}
+function go(p){
+  show(p);document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));
+  if(p==="work"){if(left()<=0)showLimit();else if(!cur)nextQ()}
+}
+function render(){
+  if(!U)return;
+  $("who").textContent=U.name;$("who2").textContent=U.name;
+  const l=(U.name[0]||"?").toUpperCase();$("av").textContent=l;$("av2").textContent=l;
+  $("bal").textContent=hidden?"••••":U.balance.toLocaleString("fr-FR");
+  $("sOk").textContent=U.ok;$("sGain").textContent=U.gain.toLocaleString("fr-FR");
+  const c=C[U.pays];$("inf").textContent=(c?c[0]+" "+c[1]+" · ":"")+U.mail+" · "+U.tel;
+  const h=U.history||[];$("hl").innerHTML=h.length?"":"<div class='note'>Aucune opération pour le moment.</div>";
+  h.forEach(x=>{const d=document.createElement("div");d.className="item";const a=document.createElement("div");a.textContent=x.t;const s=document.createElement("small");s.textContent=x.d;a.appendChild(s);const b=document.createElement("b");b.textContent="+"+x.a+" FCFA";d.append(a,b);$("hl").appendChild(d)});
+}
+const H=(t,a)=>[{t,a,d:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})},...(U.history||[])].slice(0,30);
+const pay=(a,t)=>({balance:U.balance+a,gain:U.gain+a,history:H(t,a)});
+async function save(p){await updateDoc(doc(db,"users",uid),p);Object.assign(U,p);render()}
+
+/* Authentification */
+function setHuman(v){human=v;$("chk").classList.toggle("on",v);$("go").disabled=!v;$("req").textContent=v?"● Validée":"● Requise";$("req").style.color=v?"var(--ok)":"var(--acc)";$("e1").className=v?"msg":"msg warn";$("e1").textContent=v?"":"Veuillez valider la vérification pour continuer"}
+$("chk").onclick=()=>setHuman(!human);setHuman(false);
+$("toLog").onclick=()=>show("plog");$("toReg").onclick=()=>show("p1");
+$("go").onclick=async()=>{
+  const n=$("nom").value.trim(),m=$("mail").value.trim(),p=$("pays").value,t=$("tel").value.replace(/[\s.-]/g,""),w=$("pw").value;let e="";
+  if(n.length<3)e="Écris ton nom complet.";
+  else if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))e="Adresse email invalide.";
+  else if(!C[p])e="Choisis ton pays.";
+  else if(!/^\+?\d{8,14}$/.test(t))e="Numéro de téléphone invalide.";
+  else if(w.length<6)e="Mot de passe : 6 caractères minimum.";
+  else if(w!==$("pw2").value)e="Les mots de passe ne correspondent pas.";
+  if(e){err("e1",e);return}
+  SD={name:n,mail:m,pays:p,tel:t};$("go").disabled=true;
+  try{await createUserWithEmailAndPassword(auth,m,w)}catch(x){SD=null;$("go").disabled=false;err("e1",fr(x))}
+};
+$("lgo").onclick=async()=>{
+  $("lgo").disabled=true;$("le").textContent="";
+  try{await signInWithEmailAndPassword(auth,$("lmail").value.trim(),$("lpw").value)}catch(x){err("le",fr(x))}
+  $("lgo").disabled=false;
+};
+$("out").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,async u=>{
+  if(!u){U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
+  uid=u.uid;
+  try{
+    const s=await getDoc(doc(db,"users",uid));
+    if(s.exists())U=s.data();
+    else{
+      if(!SD){await signOut(auth);return}
+      U={...SD,balance:0,gain:0,ok:0,count:0,dayN:today(),bonusDay:0,history:[]};
+      await setDoc(doc(db,"users",uid),U);
+    }
+    SD=null;render();go("home");
+  }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
+});
+
+/* Accueil */
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.p));
+$("aTv").onclick=()=>go("work");
+$("aTr").onclick=()=>toast("Transfert simulé : jeu à argent fictif, aucun envoi réel.");
+$("aRe").onclick=()=>toast("Retrait indisponible : les FCFA du jeu sont fictifs.");
+$("eye").onclick=()=>{hidden=!hidden;render()};
+$("bon").onclick=async()=>{
+  const T=today();
+  if(U.bonusDay===T){toast("Bonus déjà collecté aujourd’hui. Reviens demain !");return}
+  const a=(Math.floor(Math.random()*6)+3)*100;
+  try{await save({bonusDay:T,...pay(a,"Bonus du jour")});toast("Bonus du jour : +"+a+" FCFA")}catch(e){toast("Impossible pour le moment. Réessaie.")}
+};
+
+/* Quiz */
+function showLimit(){cur=null;$("tag").textContent="Limite du jour atteinte ("+LIMIT+"/"+LIMIT+")";$("q").textContent="Tu as répondu à tes "+LIMIT+" questions du jour. Reviens demain pour gagner encore !";$("opts").innerHTML="";$("msg").textContent="";$("next").classList.add("hide")}
+function nextQ(){
+  if(left()<=0){showLimit();return}
+  if(idx>=order.length){order=Q.map((_,i)=>i).sort(()=>Math.random()-.5);idx=0}
+  const q=Q[order[idx++]];
+  const o=q[1].map((t,i)=>({t,c:i===0})).sort(()=>Math.random()-.5);
+  cur={o};answered=false;
+  $("tag").textContent="Question "+((U.dayN===today()?U.count:0)+1)+" sur "+LIMIT+" · 500 FCFA si c’est juste";
+  $("q").textContent=q[0];$("msg").textContent="";$("msg").className="msg";$("opts").innerHTML="";
+  o.forEach((x,i)=>{const b=document.createElement("button");b.className="opt";b.textContent=String.fromCharCode(65+i)+". "+x.t;b.onclick=()=>pick(i);$("opts").appendChild(b)});
+  $("next").classList.add("hide");
+}
+async function pick(i){
+  if(answered)return;answered=true;
+  const T=today(),c=(U.dayN===T?U.count:0)+1,good=cur.o[i].c;
+  let p={count:c,dayN:T};
+  if(good)p={...p,...pay(500,"Bonne réponse"),ok:U.ok+1};
+  try{await save(p)}catch(e){answered=false;toast("Réponse non enregistrée. Vérifie ta connexion.");return}
+  const bs=$("opts").children;let g="";
+  cur.o.forEach((x,k)=>{bs[k].disabled=true;if(x.c){bs[k].classList.add("good");g=x.t}else if(k===i)bs[k].classList.add("bad")});
+  $("msg").textContent=good?one(OKS):one(KOS)+" La bonne réponse : "+g+".";$("msg").className="msg "+(good?"ok":"ko");
+  $("next").textContent=left()>0?"Phrase suivante":"Terminer";$("next").classList.remove("hide");
+}
+$("next").onclick=nextQ;
+
+/* Profil */
+$("chg").onclick=async()=>{
+  const n=prompt("Nouveau nom :",U.name);
+  if(n&&n.trim().length>=3){try{await save({name:n.trim().slice(0,40)})}catch(e){toast("Impossible pour le moment.")}}
+};
+</script>
+</body>
+</html>
