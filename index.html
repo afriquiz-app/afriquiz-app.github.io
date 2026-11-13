@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CORRIGE FAUTE</title>
+<title>AfriQuiz</title>
 <style>
-:root{--bg:#f6f4ff;--card:#fff;--tx:#1d1a33;--mut:#7a7694;--pri:#5b3df5;--pri2:#9b5cf6;--acc:#ff9f1c;--ok:#16a34a;--err:#e11d48;--bd:#e7e3fb;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#14112a;--card:#1f1b3d;--tx:#f2f0ff;--mut:#a6a1c9;--bd:#33305c;color-scheme:dark}}
+:root{--bg:#F3F6FB;--card:#fff;--tx:#0F1B2D;--mut:#62708A;--pri:#14447A;--pri2:#1D6FA5;--acc:#E0A526;--ok:#15803D;--err:#C62839;--bd:#DDE4EF;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0A1424;--card:#12203A;--tx:#EAF0FA;--mut:#93A4C0;--bd:#223454;--pri:#3E86CE;--pri2:#2A6FB0;color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -18,11 +18,11 @@ input,select{width:100%;font-size:16px;color:var(--tx);outline:none}
 button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:14px 18px;font-size:16px;cursor:pointer;background:var(--pri);color:#fff}
 button:disabled{opacity:.5}
 .full{width:100%;margin-top:12px}
-.rh{padding:46px 20px 60px;text-align:center;color:#fff;background:linear-gradient(135deg,#3b1fb8,#7c3aed 60%,#f97316);border-radius:0 0 40px 40px}
-.logo{width:84px;height:84px;margin:0 auto 14px;border-radius:24px;background:#fff;display:grid;place-items:center;font-size:40px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
-.rt{font-size:26px;font-style:italic;font-weight:800;font-family:Georgia,serif}
+.rh{padding:46px 20px 60px;text-align:center;color:#fff;background:linear-gradient(160deg,#0B1F3A,#14447A 65%,#1D6FA5);border-radius:0 0 28px 28px}
+.logo{width:84px;height:84px;margin:0 auto 14px;border-radius:20px;background:#fff;display:grid;place-items:center;font-size:40px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.rt{font-size:22px;font-weight:800;letter-spacing:2px}
 .rs{opacity:.92;margin-top:6px}
-.rf{margin:-30px 14px 20px;padding:4px 18px 22px;background:var(--card);border-radius:24px;box-shadow:0 8px 24px rgba(91,61,245,.12);position:relative}
+.rf{margin:-30px 14px 20px;padding:4px 18px 22px;background:var(--card);border-radius:18px;box-shadow:0 8px 24px rgba(20,68,122,.12);position:relative}
 .rf label{display:block;margin:16px 0 6px;font-size:13px;letter-spacing:1px;color:var(--mut);font-weight:700}
 .fld{display:flex;align-items:center;gap:6px;background:var(--bg);border:2px solid var(--bd);border-radius:14px;padding:0 12px}
 .fld:focus-within{border-color:var(--pri)}
@@ -30,7 +30,7 @@ button:disabled{opacity:.5}
 .eyeb{background:none;color:var(--mut);padding:4px;font-size:18px}
 .sec{margin-top:20px;border:1px solid var(--bd);border-radius:18px;padding:14px;background:var(--bg)}
 .sh{display:flex;align-items:center;gap:10px}.sh>div{flex:1}.sh small{display:block;font-size:11px;letter-spacing:1px;color:var(--mut);font-weight:700}
-.si{width:42px;height:42px;border-radius:12px;background:rgba(91,61,245,.14);display:grid;place-items:center;font-size:20px}
+.si{width:42px;height:42px;border-radius:12px;background:rgba(20,68,122,.14);display:grid;place-items:center;font-size:20px}
 .req{font-size:12px;font-weight:700;color:var(--acc)}
 .chk{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px;border:1px solid var(--bd);border-radius:14px;background:var(--card);cursor:pointer}
 .bx{width:30px;height:30px;flex:none;border:2px solid var(--mut);border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800}
@@ -42,10 +42,10 @@ button:disabled{opacity:.5}
 .ok{color:var(--ok)}.ko{color:var(--err)}.warn{color:#c2410c}
 .lnk{background:none;color:var(--pri);padding:4px;font-size:14px;text-decoration:underline}
 .hdr{display:flex;align-items:center;gap:12px}
-.av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#ff6b6b);display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff}
+.av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#B7791F);display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff}
 .hi{flex:1}.hi small{color:var(--mut);display:block}.hi b{font-size:18px}
-.badge{font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;background:rgba(255,159,28,.2);color:var(--acc)}
-.bal{margin-top:16px;border-radius:24px;padding:22px;color:#fff;background:linear-gradient(135deg,var(--pri),var(--pri2));box-shadow:0 10px 24px rgba(91,61,245,.3)}
+.badge{font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;background:rgba(224,165,38,.2);color:var(--acc)}
+.bal{margin-top:16px;border-radius:18px;padding:22px;color:#fff;background:linear-gradient(135deg,var(--pri),var(--pri2));box-shadow:0 10px 24px rgba(20,68,122,.3)}
 .bal small{opacity:.85;letter-spacing:1px;font-size:12px}
 .amt{display:flex;align-items:baseline;gap:8px;margin-top:6px}.amt b{font-size:40px;font-weight:800}.amt span{opacity:.9;font-weight:700}
 .eye{margin-left:auto;background:rgba(255,255,255,.2);padding:6px 10px}
@@ -55,8 +55,8 @@ button:disabled{opacity:.5}
 .note{font-size:13px;color:var(--mut);line-height:1.4}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.stats .card{margin:0;text-align:center}
 .stats b{display:block;font-size:22px;color:var(--pri)}.stats span{font-size:13px;color:var(--mut)}
-.bonus{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#ff9f1c,#ff6b6b);color:#fff;border:0}
-.bonus div{flex:1}.bonus b{font-size:17px}.bonus small{display:block;opacity:.9}.bonus button{background:#fff;color:#e8590c}
+.bonus{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#F4C95D,#E0A526);color:#0B1F3A;border:0}
+.bonus div{flex:1}.bonus b{font-size:17px}.bonus small{display:block;opacity:.9}.bonus button{background:#0B1F3A;color:#fff}
 .q{font-size:19px;line-height:1.4;font-weight:600}.tag{font-size:13px;color:var(--mut);margin-bottom:8px}
 .opt{display:block;width:100%;margin-top:10px;text-align:left;background:var(--card);color:var(--tx);border:2px solid var(--bd)}
 .opt.good{background:var(--ok);border-color:var(--ok);color:#fff;opacity:1}.opt.bad{background:var(--err);border-color:var(--err);color:#fff;opacity:1}
@@ -64,7 +64,7 @@ button:disabled{opacity:.5}
 .item:last-child{border:0}.item small{color:var(--mut);display:block}.item b{color:var(--ok)}
 .nav{display:flex;border-top:1px solid var(--bd);background:var(--card);padding:6px 6px 8px}
 .nav button{flex:1;background:none;color:var(--mut);font-size:11px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
-.nav button i{font-style:normal;font-size:22px}.nav button.on{color:var(--pri);background:rgba(91,61,245,.12)}
+.nav button i{font-style:normal;font-size:22px}.nav button.on{color:var(--pri);background:rgba(20,68,122,.12)}
 .hide{display:none!important}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;max-width:88%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
 #toast.on{opacity:1}
@@ -73,7 +73,7 @@ button:disabled{opacity:.5}
 <body>
 <div class="app">
   <section id="p1" class="page on" style="padding:0">
-    <div class="rh"><div class="logo">✍️</div><div class="rt">CRÉE UN COMPTE</div><div class="rs">Rejoignez CORRIGE FAUTE</div></div>
+    <div class="rh"><div class="logo">🌍</div><div class="rt">CRÉE UN COMPTE</div><div class="rs">Rejoignez AfriQuiz</div></div>
     <div class="rf">
       <label>NOM COMPLET</label><div class="fld"><input id="nom" maxlength="40" placeholder="Votre nom complet" autocomplete="name"></div>
       <label>ADRESSE EMAIL</label><div class="fld"><input id="mail" type="email" placeholder="votre@email.com" autocomplete="email"></div>
@@ -84,7 +84,7 @@ button:disabled{opacity:.5}
       <div class="sec">
         <div class="sh"><span class="si">🔐</span><div><small>PROTECTION DU COMPTE</small><b>Vérification de sécurité</b></div><span class="req" id="req">● Requise</span></div>
         <div class="chk" id="chk"><span class="bx"></span><div class="ct"><b>Confirmez que vous êtes bien humain</b><small>Un contrôle rapide protège votre inscription.</small></div><span class="cl">Cliquer pour continuer</span></div>
-        <div class="sf"><span>🛡 Contrôle respectueux de votre vie privée</span><span>CORRIGE FAUTE</span></div>
+        <div class="sf"><span>🛡 Contrôle respectueux de votre vie privée</span><span>AfriQuiz</span></div>
       </div>
       <button class="full" id="go">Créer mon compte →</button>
       <div class="msg warn" id="e1"></div>
@@ -93,7 +93,7 @@ button:disabled{opacity:.5}
   </section>
 
   <section id="plog" class="page" style="padding:0">
-    <div class="rh"><div class="logo">✍️</div><div class="rt">CONNEXION</div><div class="rs">Content de te revoir sur CORRIGE FAUTE</div></div>
+    <div class="rh"><div class="logo">🌍</div><div class="rt">CONNEXION</div><div class="rs">Content de te revoir sur AfriQuiz</div></div>
     <div class="rf">
       <label>ADRESSE EMAIL</label><div class="fld"><input id="lmail" type="email" placeholder="votre@email.com" autocomplete="email"></div>
       <label>MOT DE PASSE</label><div class="fld"><input id="lpw" type="password" placeholder="Votre mot de passe" autocomplete="current-password"><button class="eyeb" data-t="lpw">👁</button></div>
@@ -104,13 +104,13 @@ button:disabled{opacity:.5}
   </section>
 
   <section id="home" class="page">
-    <div class="hdr"><div class="av" id="av"></div><div class="hi"><small>Bonjour</small><b id="who"></b></div><span class="badge">Inactif</span></div>
+    <div class="hdr"><div class="av" id="av"></div><div class="hi"><small>Bonjour</small><b id="who"></b></div><span class="badge" style="background:#00B300;color:#fff">● Actif</span></div>
     <div class="bal">
       <div style="display:flex;align-items:center"><small>SOLDE DISPONIBLE</small><button class="eye" id="eye">👁</button></div>
       <div class="amt"><b id="bal">0</b><span>FCFA</span></div>
     </div>
     <div class="acts">
-      <button class="act" id="aTr"><i>📤</i>Transfert</button>
+      <button class="act" id="aTr"><i>💬</i>Communauté AfriQuiz</button>
       <button class="act" id="aRe"><i>📥</i>Retrait</button>
       <button class="act" id="aTv"><i>💼</i>Travaux</button>
     </div>
@@ -119,7 +119,7 @@ button:disabled{opacity:.5}
       <div class="card"><b id="sOk">0</b><span>Bonnes réponses</span></div>
       <div class="card"><b id="sGain">0</b><span>Gains (FCFA)</span></div>
     </div>
-    <div class="card note">🎮 CORRIGE FAUTE est un jeu. Les FCFA affichés sont fictifs, ils servent seulement à animer la partie et ne peuvent pas être retirés.</div>
+    <div class="card note"><b style="color:var(--tx)">Testez vos connaissances sur l’Afrique tout en vous amusant !</b> Histoire, culture, géographie et musique : relevez le défi AfriQuiz.<div style="margin-top:8px;font-size:11px">Jeu de divertissement : les gains affichés sont fictifs.</div></div>
   </section>
 
   <section id="work" class="page">
@@ -272,8 +272,8 @@ onAuthStateChanged(auth,async u=>{
 /* Accueil */
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.p));
 $("aTv").onclick=()=>go("work");
-$("aTr").onclick=()=>toast("Transfert simulé : jeu à argent fictif, aucun envoi réel.");
-$("aRe").onclick=()=>toast("Retrait indisponible : les FCFA du jeu sont fictifs.");
+$("aTr").onclick=()=>window.open("https://cyrille-apk.github.io/cyrille-chat/","_blank","noopener");
+$("aRe").onclick=()=>toast("Retrait non disponible");
 $("eye").onclick=()=>{hidden=!hidden;render()};
 $("bon").onclick=async()=>{
   const T=today();
