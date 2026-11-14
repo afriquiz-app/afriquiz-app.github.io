@@ -147,7 +147,11 @@ button:disabled{opacity:.5}
     <div class="crow"><button class="eyeb" id="att" title="Joindre une capture d’écran du problème">📎</button><input type="file" id="file" accept="image/*" class="hide"><div class="fld" style="flex:1"><input id="mi" maxlength="1000" placeholder="Votre message" autocomplete="off"></div><button id="send">Envoyer</button></div>
   </section>
 
-  <section id="adm" class="page"><h2>Messages des utilisateurs</h2><div class="card" style="margin-top:0" id="al"></div></section>
+  <section id="adm" class="page"><h2>Tableau de bord</h2>
+    <div class="stats" style="margin-top:0"><div class="card"><b id="stT">0</b><span>Inscrits</span></div><div class="card"><b id="stD">0</b><span>Actifs aujourd’hui</span></div></div>
+    <div class="stats"><div class="card"><b id="stW">0</b><span>Actifs (7 jours)</span></div><div class="card"><b id="stQ">0</b><span>Bonnes réponses</span></div></div>
+    <h2 style="margin-top:18px">Messages</h2><div class="card" style="margin-top:0" id="al"></div>
+    <h2 style="margin-top:18px">Joueurs</h2><div class="card" style="margin-top:0" id="pl"></div></section>
 
   <section id="team" class="page"><h2>Équipe</h2><div class="card note" style="margin-top:0">👥 Bientôt disponible : défie tes amis et compare vos scores.</div></section>
   <section id="hist" class="page"><h2>Historique</h2><div class="card" style="margin-top:0" id="hl"></div></section>
@@ -332,8 +336,8 @@ async function pick(i){
 $("next").onclick=nextQ;
 
 /* Messagerie */
-let isAdm=false,chatUid=null,unM=null,unL=null,imgData="";
-function unsub(){if(unM)unM();if(unL)unL();unM=unL=null}
+let isAdm=false,chatUid=null,unM=null,unL=null,unU=null,imgData="";
+function unsub(){if(unM)unM();if(unL)unL();if(unU)unU();unM=unL=unU=null}
 async function checkAdmin(){
   try{const s=await getDoc(doc(db,"config","admin"));isAdm=s.exists()&&s.data().uid===uid}catch(e){isAdm=false}
   $("navAdm").classList.toggle("hide",!isAdm);
@@ -391,7 +395,20 @@ $("file").onchange=()=>{
   r.readAsDataURL(f);
 };
 function loadAdm(){
-  if(!isAdm)return;if(unL)unL();
+  if(!isAdm)return;if(unL)unL();if(unU)unU();
+  unU=onSnapshot(query(collection(db,"users"),orderBy("gain","desc"),limit(500)),s=>{
+    const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0;const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
+    s.forEach(d=>{
+      const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
+      if(last===t)td++;if(last>0&&last>=t-6)wk++;q+=x.ok||0;
+      const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
+      n.textContent=(c?c[0]+" ":"")+(x.name||"Joueur");
+      const d0=t-last;
+      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué");
+      r.append(n,m);l.appendChild(r);
+    });
+    $("stT").textContent=s.size;$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
+  },()=>toast("Statistiques indisponibles."));
   unL=onSnapshot(query(collection(db,"chats"),orderBy("lastAt","desc"),limit(100)),s=>{
     const l=$("al");l.innerHTML=s.empty?"<div class='note'>Aucune conversation pour le moment.</div>":"";
     s.forEach(d=>{
