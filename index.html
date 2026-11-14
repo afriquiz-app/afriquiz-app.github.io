@@ -65,6 +65,16 @@ button:disabled{opacity:.5}
 .nav{display:flex;border-top:1px solid var(--bd);background:var(--card);padding:6px 6px 8px}
 .nav button{flex:1;background:none;color:var(--mut);font-size:11px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
 .nav button i{font-style:normal;font-size:22px}.nav button.on{color:var(--pri);background:rgba(20,68,122,.12)}
+#msgs{flex:1;min-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:12px 0}
+.b{max-width:82%;padding:10px 12px;border-radius:14px;font-size:15px;line-height:1.35;word-wrap:break-word}
+.b.me{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:4px}
+.b.ot{align-self:flex-start;background:var(--card);border:1px solid var(--bd);border-bottom-left-radius:4px}
+.b img{max-width:100%;border-radius:10px;display:block;margin-top:6px}
+.b small{display:block;opacity:.7;font-size:10px;margin-top:4px}
+.crow{display:flex;gap:8px;align-items:center;margin-top:6px}
+#prev{margin-top:6px;font-size:12px;color:var(--mut)}
+.ai{display:block;padding:12px 0;border-bottom:1px solid var(--bd);cursor:pointer}.ai:last-child{border:0}.ai small{display:block;color:var(--mut);margin-top:2px}
+.act[data-n="1"]::after{content:"● Nouveau";color:var(--err);font-size:11px}
 .hide{display:none!important}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;max-width:88%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
 #toast.on{opacity:1}
@@ -129,6 +139,16 @@ button:disabled{opacity:.5}
     <button class="full hide" id="next">Phrase suivante</button>
   </section>
 
+  <section id="chat" class="page">
+    <div class="hdr"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div></div>
+    <div class="card note" id="chn" style="margin-top:10px">Utilise cette discussion pour signaler un problème ou poser une question à l’équipe. Tu peux joindre une capture d’écran du problème. N’envoie jamais ton mot de passe ni de preuve de paiement.</div>
+    <div id="msgs"></div>
+    <div id="prev" class="hide"></div>
+    <div class="crow"><button class="eyeb" id="att" title="Joindre une capture d’écran du problème">📎</button><input type="file" id="file" accept="image/*" class="hide"><div class="fld" style="flex:1"><input id="mi" maxlength="1000" placeholder="Votre message" autocomplete="off"></div><button id="send">Envoyer</button></div>
+  </section>
+
+  <section id="adm" class="page"><h2>Messages des utilisateurs</h2><div class="card" style="margin-top:0" id="al"></div></section>
+
   <section id="team" class="page"><h2>Équipe</h2><div class="card note" style="margin-top:0">👥 Bientôt disponible : défie tes amis et compare vos scores.</div></section>
   <section id="hist" class="page"><h2>Historique</h2><div class="card" style="margin-top:0" id="hl"></div></section>
 
@@ -148,6 +168,7 @@ button:disabled{opacity:.5}
     <button data-p="team"><i>👥</i>Équipe</button>
     <button data-p="hist"><i>🕘</i>Historique</button>
     <button data-p="prof"><i>👤</i>Profil</button>
+    <button data-p="adm" id="navAdm" class="hide"><i>🛠</i>Admin</button>
   </nav>
 </div>
 <div id="toast"></div>
@@ -155,7 +176,7 @@ button:disabled{opacity:.5}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,addDoc,query,orderBy,limit,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
 const app=initializeApp({
   apiKey:"AIzaSyBkd1bZ-QNFgy7l2FtdDFXhoPEmPvacPfQ",
@@ -200,7 +221,7 @@ const C={TG:["🇹🇬","Togo","+228"],BF:["🇧🇫","Burkina Faso","+226"],CI:
 const ERR={"auth/email-already-in-use":"Un compte existe déjà avec cet email. Connecte-toi.","auth/invalid-credential":"Email ou mot de passe incorrect.","auth/invalid-email":"Adresse email invalide.","auth/weak-password":"Mot de passe trop faible (6 caractères minimum).","auth/network-request-failed":"Pas de connexion internet.","auth/too-many-requests":"Trop d’essais. Réessaie plus tard."};
 
 const $=i=>document.getElementById(i);
-const LIMIT=15,PAGES=["p1","plog","home","work","team","hist","prof"];
+const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof"];
 let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
 const one=a=>a[Math.floor(Math.random()*a.length)];
 const fr=x=>ERR[x&&x.code]||"Une erreur est survenue. Réessaie.";
@@ -217,6 +238,7 @@ function show(id){PAGES.forEach(p=>$(p).classList.toggle("on",p===id));$("nav").
 function go(p){
   show(p);document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));
   if(p==="work"){if(left()<=0)showLimit();else if(!cur)nextQ()}
+  if(p==="adm")loadAdm();
 }
 function render(){
   if(!U)return;
@@ -255,7 +277,7 @@ $("lgo").onclick=async()=>{
 };
 $("out").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,async u=>{
-  if(!u){U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
+  if(!u){unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
   uid=u.uid;
   try{
     const s=await getDoc(doc(db,"users",uid));
@@ -265,14 +287,14 @@ onAuthStateChanged(auth,async u=>{
       U={...SD,balance:0,gain:0,ok:0,count:0,dayN:today(),bonusDay:0,history:[]};
       await setDoc(doc(db,"users",uid),U);
     }
-    SD=null;render();go("home");
+    SD=null;render();go("home");checkAdmin();
   }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
 });
 
 /* Accueil */
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.p));
 $("aTv").onclick=()=>go("work");
-$("aTr").onclick=()=>window.open("https://cyrille-apk.github.io/cyrille-chat/","_blank","noopener");
+$("aTr").onclick=()=>openChat(uid);
 $("aRe").onclick=()=>toast("Retrait non disponible");
 $("eye").onclick=()=>{hidden=!hidden;render()};
 $("bon").onclick=async()=>{
@@ -307,6 +329,77 @@ async function pick(i){
   $("next").textContent=left()>0?"Phrase suivante":"Terminer";$("next").classList.remove("hide");
 }
 $("next").onclick=nextQ;
+
+/* Messagerie */
+let isAdm=false,chatUid=null,unM=null,unL=null,imgData="";
+function unsub(){if(unM)unM();if(unL)unL();unM=unL=null}
+async function checkAdmin(){
+  try{const s=await getDoc(doc(db,"config","admin"));isAdm=s.exists()&&s.data().uid===uid}catch(e){isAdm=false}
+  $("navAdm").classList.toggle("hide",!isAdm);
+  if(!isAdm)unL=onSnapshot(doc(db,"chats",uid),s=>{$("aTr").dataset.n=s.exists()&&s.data().unreadUser?"1":""},()=>{});
+}
+function openChat(cid,label){
+  chatUid=cid;imgData="";$("prev").classList.add("hide");$("mi").value="";
+  const a=cid!==uid;
+  $("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a);
+  $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
+  show("chat");if(unM)unM();
+  unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
+    const m=$("msgs");m.innerHTML="";
+    s.forEach(d=>{
+      const x=d.data(),b=document.createElement("div");b.className="b "+((x.from==="admin")===a?"me":"ot");
+      if(x.text){const t=document.createElement("div");t.textContent=x.text;b.appendChild(t)}
+      if(x.img){const i=document.createElement("img");i.src=x.img;b.appendChild(i)}
+      const t=document.createElement("small");t.textContent=x.at?x.at.toDate().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"…";
+      b.appendChild(t);m.appendChild(b);
+    });
+    m.scrollTop=m.scrollHeight;
+  },()=>toast("Messagerie indisponible."));
+  updateDoc(doc(db,"chats",cid),a?{unreadAdmin:false}:{unreadUser:false}).catch(()=>{});
+}
+async function send(){
+  const t=$("mi").value.trim();if(!t&&!imgData)return;
+  $("send").disabled=true;
+  try{
+    const a=chatUid!==uid,msg={from:a?"admin":"user",text:t,at:serverTimestamp()};
+    if(imgData)msg.img=imgData;
+    if(!a)await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
+    await addDoc(collection(db,"chats",chatUid,"messages"),msg);
+    await updateDoc(doc(db,"chats",chatUid),{last:t||"📷 Capture d’écran",lastAt:serverTimestamp(),unreadAdmin:!a,unreadUser:a});
+    $("mi").value="";imgData="";$("prev").classList.add("hide");
+  }catch(e){toast("Message non envoyé. Réessaie.")}
+  $("send").disabled=false;
+}
+$("send").onclick=send;
+$("mi").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
+$("chb").onclick=()=>{if(unM){unM();unM=null}go("adm")};
+$("att").onclick=()=>$("file").click();
+$("prev").onclick=()=>{imgData="";$("prev").classList.add("hide")};
+$("file").onchange=()=>{
+  const f=$("file").files[0];$("file").value="";
+  if(!f||!f.type.startsWith("image/"))return;
+  const r=new FileReader();
+  r.onload=()=>{const im=new Image();im.onload=()=>{
+    const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement("canvas");
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    let d=c.toDataURL("image/jpeg",.7);if(d.length>380000)d=c.toDataURL("image/jpeg",.45);
+    if(d.length>380000){toast("Image trop lourde.");return}
+    imgData=d;const p=$("prev");p.innerHTML="";const i=document.createElement("img");i.src=d;i.style.cssText="max-height:90px;border-radius:8px;display:block";
+    p.append(i,"Capture jointe · touche pour retirer");p.classList.remove("hide");
+  };im.src=r.result};
+  r.readAsDataURL(f);
+};
+function loadAdm(){
+  if(!isAdm)return;if(unL)unL();
+  unL=onSnapshot(query(collection(db,"chats"),orderBy("lastAt","desc"),limit(100)),s=>{
+    const l=$("al");l.innerHTML=s.empty?"<div class='note'>Aucune conversation pour le moment.</div>":"";
+    s.forEach(d=>{
+      const x=d.data(),r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
+      n.textContent=(x.unreadAdmin?"🔴 ":"")+(x.name||"Utilisateur");m.textContent=(x.mail||"")+" · "+(x.last||"");
+      r.append(n,m);r.onclick=()=>openChat(d.id,x.name||"Utilisateur");l.appendChild(r);
+    });
+  },()=>toast("Liste indisponible."));
+}
 
 /* Profil */
 $("chg").onclick=async()=>{
