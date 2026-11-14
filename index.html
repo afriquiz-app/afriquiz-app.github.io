@@ -221,6 +221,7 @@ const C={TG:["🇹🇬","Togo","+228"],BF:["🇧🇫","Burkina Faso","+226"],CI:
 const ERR={"auth/email-already-in-use":"Un compte existe déjà avec cet email. Connecte-toi.","auth/invalid-credential":"Email ou mot de passe incorrect.","auth/invalid-email":"Adresse email invalide.","auth/weak-password":"Mot de passe trop faible (6 caractères minimum).","auth/network-request-failed":"Pas de connexion internet.","auth/too-many-requests":"Trop d’essais. Réessaie plus tard."};
 
 const $=i=>document.getElementById(i);
+const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la discussion
 const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof"];
 let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
 const one=a=>a[Math.floor(Math.random()*a.length)];
@@ -341,7 +342,7 @@ async function checkAdmin(){
 function openChat(cid,label){
   chatUid=cid;imgData="";$("prev").classList.add("hide");$("mi").value="";
   const a=cid!==uid;
-  $("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a);
+  $("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a||!SHOW_NOTICE);
   $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
   show("chat");if(unM)unM();
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
