@@ -162,7 +162,17 @@ button:disabled{opacity:.5}
     <h2 style="margin-top:18px">Messages</h2><div class="card" style="margin-top:0" id="al"></div>
     <h2 style="margin-top:18px">Joueurs</h2><div class="card" style="margin-top:0" id="pl"></div></section>
 
-  <section id="team" class="page"><h2>Équipe</h2><div class="card note" style="margin-top:0">👥 Bientôt disponible : défie tes amis et compare vos scores.</div></section>
+  <section id="team" class="page">
+    <div class="rh" style="padding:26px 20px;text-align:left;border-radius:18px"><div class="rt" style="font-size:20px">Mon équipe</div><div class="rs">Apprenons l’Afrique ensemble</div></div>
+    <div class="stats"><div class="card"><b id="tOk">0</b><span>Bonnes réponses</span></div><div class="card"><b id="tDay">0/15</b><span>Questions aujourd’hui</span></div></div>
+    <div class="card">
+      <div class="hdr"><div class="si">🔗</div><b>Invite tes camarades</b></div>
+      <div class="sec" style="text-align:center"><small style="color:var(--mut);letter-spacing:1px;font-size:11px;font-weight:700">TON CODE</small><div id="tCode" style="font-size:24px;font-weight:800;letter-spacing:3px;margin-top:4px"></div></div>
+      <div class="note" id="tLink" style="margin-top:10px;word-break:break-all;padding:10px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)"></div>
+      <div class="acts" style="grid-template-columns:1fr 1fr"><button id="tCopy">📋 Copier</button><button id="tShare" style="background:#15803D">↗ Partager</button></div>
+    </div>
+    <div class="card note"><b style="color:var(--tx)">Plus on est nombreux, plus on apprend !</b> Invite tes camarades de classe à relever le défi AfriQuiz et comparez vos connaissances sur l’Afrique.</div>
+  </section>
   <section id="hist" class="page"><h2>Historique</h2><div class="card" style="margin-top:0" id="hl"></div></section>
 
   <section id="prof" class="page">
@@ -227,7 +237,45 @@ const Q=[
 ["Quelle est la capitale du Cameroun ?",["Yaoundé","Douala","Garoua"]],
 ["Dans quel pays se trouve la ville de Tombouctou ?",["Le Mali","Le Niger","La Mauritanie"]],
 ["Combien de pays reconnus compte l’Afrique ?",["54","48","62"]],
-["Quelle est la capitale officielle du Bénin ?",["Porto-Novo","Cotonou","Abomey"]]
+["Quelle est la capitale officielle du Bénin ?",["Porto-Novo","Cotonou","Abomey"]],
+["En quelle année le Ghana est-il devenu indépendant, premier pays d’Afrique noire à l’être ?",["1957", "1960", "1963"]],
+["Qui fut le premier président du Ghana indépendant ?",["Kwame Nkrumah", "Julius Nyerere", "Modibo Keïta"]],
+["Qui fut le premier président du Sénégal indépendant ?",["Léopold Sédar Senghor", "Abdou Diouf", "Houphouët-Boigny"]],
+["Quel pays a été dirigé par le capitaine Thomas Sankara ?",["Le Burkina Faso", "Le Mali", "Le Niger"]],
+["Quel empereur du Mali est célèbre pour son pèlerinage à La Mecque en 1324 ?",["Mansa Moussa", "Soundiata Keïta", "Samory Touré"]],
+["Qui est le fondateur de l’empire du Mali ?",["Soundiata Keïta", "Mansa Moussa", "Askia Mohamed"]],
+["Quel ancien royaume du sud du Bénin était célèbre pour ses amazones ?",["Le Dahomey", "L’empire ashanti", "Le royaume zoulou"]],
+["Quelle puissance coloniale le roi Béhanzin du Dahomey a-t-il combattue ?",["La France", "Le Royaume-Uni", "Le Portugal"]],
+["Quelle conférence de 1884-1885 a organisé le partage de l’Afrique entre puissances européennes ?",["La conférence de Berlin", "La conférence de Paris", "La conférence de Londres"]],
+["En quelle année Nelson Mandela est-il devenu président d’Afrique du Sud ?",["1994", "1990", "1999"]],
+["Quel était l’ancien nom du Zimbabwe ?",["La Rhodésie", "Le Zaïre", "Le Dahomey"]],
+["Quel nom portait la RD Congo entre 1971 et 1997 ?",["Le Zaïre", "La Rhodésie", "Le Katanga"]],
+["Quel pays africain a vaincu l’Italie à la bataille d’Adwa en 1896 ?",["L’Éthiopie", "L’Égypte", "Le Libéria"]],
+["Quel pharaon est célèbre pour son tombeau découvert en 1922 ?",["Toutânkhamon", "Ramsès II", "Khéops"]],
+["Quel royaume avait pour capitale Kumasi ?",["L’empire ashanti", "Le Dahomey", "L’empire du Mali"]],
+["Quel almamy a résisté à la conquête française en Afrique de l’Ouest avant sa capture en 1898 ?",["Samory Touré", "Soundiata Keïta", "Mansa Moussa"]],
+["En quelle année l’Algérie est-elle devenue indépendante ?",["1962", "1954", "1960"]],
+["En quelle année le Bénin, alors appelé Dahomey, est-il devenu indépendant ?",["1960", "1957", "1964"]],
+["Quelle Kényane a reçu le prix Nobel de la paix en 2004 ?",["Wangari Maathai", "Miriam Makeba", "Ellen Johnson Sirleaf"]],
+["Où se trouve le siège de l’Union africaine ?",["Addis-Abeba", "Nairobi", "Dakar"]],
+["Quel plat de semoule est typique du Maghreb ?",["Le couscous", "Le foufou", "L’attiéké"]],
+["De quel pays vient l’attiéké, plat à base de manioc ?",["La Côte d’Ivoire", "Le Kenya", "L’Égypte"]],
+["Quel plat de pâte pilée d’igname ou de manioc est très répandu en Afrique de l’Ouest ?",["Le foufou", "Le couscous", "Le tajine"]],
+["Quel festival de cinéma africain a lieu à Ouagadougou ?",["Le FESPACO", "Le festival de Cannes", "Le carnaval de Rio"]],
+["Quel tissu coloré est célèbre au Ghana ?",["Le kenté", "Le bogolan", "Le kilt"]],
+["Quel instrument à cordes est joué par les griots d’Afrique de l’Ouest ?",["La kora", "Le djembé", "Le balafon"]],
+["Quel instrument est un tambour en forme de calice, joué à mains nues ?",["Le djembé", "La kora", "Le balafon"]],
+["Quel musicien nigérian est considéré comme le créateur de l’afrobeat ?",["Fela Kuti", "Youssou N’Dour", "Salif Keïta"]],
+["De quel pays est le chanteur Youssou N’Dour ?",["Le Sénégal", "Le Mali", "Le Ghana"]],
+["De quel pays est le chanteur Salif Keïta, surnommé la « voix d’or de l’Afrique » ?",["Le Mali", "Le Niger", "La Mauritanie"]],
+["Quelle chanteuse sud-africaine est surnommée « Mama Africa » ?",["Miriam Makeba", "Angélique Kidjo", "Cesária Évora"]],
+["De quel pays est la chanteuse Angélique Kidjo ?",["Le Bénin", "Le Togo", "Le Cameroun"]],
+["Quel saxophoniste camerounais a popularisé le makossa ?",["Manu Dibango", "Fela Kuti", "Papa Wemba"]],
+["Quel style musical est né en Côte d’Ivoire au début des années 2000 ?",["Le coupé-décalé", "Le mbalax", "Le makossa"]],
+["Quelle musique, née dans les deux Congo, a été classée à l’UNESCO en 2021 ?",["La rumba congolaise", "Le highlife", "Le raï"]],
+["Quel genre musical est né à Oran, en Algérie ?",["Le raï", "Le coupé-décalé", "L’afrobeat"]],
+["De quel pays vient le style musical amapiano ?",["L’Afrique du Sud", "Le Kenya", "Le Sénégal"]],
+["De quel pays est la star Burna Boy ?",["Le Nigeria", "Le Ghana", "L’Afrique du Sud"]]
 ];
 const OKS=["Bravo ! Excellente réponse, tu gagnes 500 FCFA 🎉","Bonne réponse ! Tu connais bien l’Afrique, +500 FCFA 👏","Exact ! Quel champion, +500 FCFA 🏆"];
 const KOS=["Dommage, mauvaise réponse. Tu ne gagnes rien cette fois.","Raté ! Pas de gain pour cette question.","Ce n’est pas la bonne réponse, 0 FCFA. Courage pour la suivante !"];
@@ -238,6 +286,7 @@ const $=i=>document.getElementById(i);
 const SHOW_DISCLAIMER=false; // mettre true pour réafficher « gains fictifs » sur l’accueil
 const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la discussion
 $("dis").classList.toggle("hide",!SHOW_DISCLAIMER);
+const REF=(new URLSearchParams(location.search).get("ref")||"").replace(/[^A-Za-z0-9]/g,"").slice(0,12);
 const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof"];
 let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
 const one=a=>a[Math.floor(Math.random()*a.length)];
@@ -256,6 +305,7 @@ function go(p){
   show(p);document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));
   if(p==="work"){if(left()<=0)showLimit();else if(!cur)nextQ()}
   if(p==="adm")loadAdm();
+  if(p==="team")renderTeam();
 }
 function render(){
   if(!U)return;
@@ -284,7 +334,7 @@ $("go").onclick=async()=>{
   else if(w.length<6)e="Mot de passe : 6 caractères minimum.";
   else if(w!==$("pw2").value)e="Les mots de passe ne correspondent pas.";
   if(e){err("e1",e);return}
-  SD={name:n,mail:m,pays:p,tel:t};$("go").disabled=true;
+  SD={name:n,mail:m,pays:p,tel:t,...(REF?{ref:REF}:{})};$("go").disabled=true;
   try{await createUserWithEmailAndPassword(auth,m,w)}catch(x){SD=null;$("go").disabled=false;err("e1",fr(x))}
 };
 $("lgo").onclick=async()=>{
@@ -415,14 +465,14 @@ $("file").onchange=()=>{
 function loadAdm(){
   if(!isAdm)return;if(unL)unL();if(unU)unU();
   unU=onSnapshot(query(collection(db,"users"),orderBy("gain","desc"),limit(500)),s=>{
-    const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0;const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
+    const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0;const rc={};s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
     s.forEach(d=>{
       const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
       if(last===t)td++;if(last>0&&last>=t-6)wk++;q+=x.ok||0;
       const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
       n.textContent=(c?c[0]+" ":"")+(x.name||"Joueur");
       const d0=t-last;
-      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué");
+      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id.slice(0,6).toUpperCase()]?" · "+rc[d.id.slice(0,6).toUpperCase()]+" invité(s)":"");
       r.append(n,m);l.appendChild(r);
     });
     $("stT").textContent=s.size;$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
@@ -436,6 +486,20 @@ function loadAdm(){
     });
   },()=>toast("Liste indisponible."));
 }
+
+/* Équipe */
+function renderTeam(){
+  const code=(uid||"").slice(0,6).toUpperCase();
+  $("tCode").textContent=code;$("tLink").textContent=location.origin+location.pathname+"?ref="+code;
+  $("tOk").textContent=U.ok;$("tDay").textContent=(U.dayN===today()?U.count:0)+"/"+LIMIT;
+}
+const INV="Viens jouer à AfriQuiz et teste tes connaissances sur l’Afrique !";
+$("tCopy").onclick=async()=>{try{await navigator.clipboard.writeText(INV+" "+$("tLink").textContent);toast("Lien copié !")}catch(e){toast("Copie impossible. Sélectionne le lien.")}};
+$("tShare").onclick=async()=>{
+  const u=$("tLink").textContent;
+  if(navigator.share){try{await navigator.share({title:"AfriQuiz",text:INV,url:u})}catch(e){}}
+  else window.open("https://wa.me/?text="+encodeURIComponent(INV+" "+u),"_blank","noopener");
+};
 
 /* Profil */
 $("chg").onclick=async()=>{
