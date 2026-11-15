@@ -75,8 +75,11 @@ button:disabled{opacity:.5}
 #prev{margin-top:6px;font-size:12px;color:var(--mut)}
 .ai{display:block;padding:12px 0;border-bottom:1px solid var(--bd);cursor:pointer}.ai:last-child{border:0}.ai small{display:block;color:var(--mut);margin-top:2px}
 .act[data-n="1"]::after{content:"● Nouveau";color:var(--err);font-size:11px}
+.ov{position:fixed;inset:0;background:rgba(10,20,36,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+.cty{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;text-align:left;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
 .hide{display:none!important}
-#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;max-width:88%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast{z-index:9;position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;max-width:88%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
 #toast.on{opacity:1}
 </style>
 </head>
@@ -135,7 +138,7 @@ button:disabled{opacity:.5}
     <div class="card note"><b style="color:var(--tx)">Déconstruisez les préjugés par la connaissance :</b> Armez-vous de faits historiques authentiques pour célébrer la vérité et la profondeur du passé africain.</div>
     <div class="card note"><b style="color:var(--tx)">Apprenez, testez et célébrez nos héros :</b> Rendez hommage aux visionnaires, aux souverains et aux résistants qui ont fait la fierté du continent.</div>
     <div class="card note"><b style="color:var(--tx)">Faites de chaque quiz une aventure mémorable :</b> Redécouvrez les grands tournants de l’Afrique sous un angle ludique, interactif et captivant.</div>
-    <div class="card note"><b style="color:var(--tx)">Testez vos connaissances sur l’Afrique tout en vous amusant !</b> Histoire, culture, géographie et musique : relevez le défi AfriQuiz.<div style="margin-top:8px;font-size:11px">Jeu de divertissement : les gains affichés sont fictifs.</div></div>
+    <div class="card note"><b style="color:var(--tx)">Testez vos connaissances sur l’Afrique tout en vous amusant !</b> Histoire, culture, géographie et musique : relevez le défi AfriQuiz.<div id="dis" style="margin-top:8px;font-size:11px">Jeu de divertissement : les gains affichés sont fictifs.</div></div>
   </section>
 
   <section id="work" class="page">
@@ -181,6 +184,7 @@ button:disabled{opacity:.5}
     <button data-p="adm" id="navAdm" class="hide"><i>🛠</i>Admin</button>
   </nav>
 </div>
+<div id="ret" class="ov hide"><div class="sheet"><b style="font-size:18px">Retrait</b><div class="note" style="margin-top:4px">Choisis ton pays</div><div id="rl"></div><button class="full" id="rc" style="background:var(--mut)">Fermer</button></div></div>
 <div id="toast"></div>
 
 <script type="module">
@@ -231,7 +235,9 @@ const C={TG:["🇹🇬","Togo","+228"],BF:["🇧🇫","Burkina Faso","+226"],CI:
 const ERR={"auth/email-already-in-use":"Un compte existe déjà avec cet email. Connecte-toi.","auth/invalid-credential":"Email ou mot de passe incorrect.","auth/invalid-email":"Adresse email invalide.","auth/weak-password":"Mot de passe trop faible (6 caractères minimum).","auth/network-request-failed":"Pas de connexion internet.","auth/too-many-requests":"Trop d’essais. Réessaie plus tard."};
 
 const $=i=>document.getElementById(i);
+const SHOW_DISCLAIMER=false; // mettre true pour réafficher « gains fictifs » sur l’accueil
 const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la discussion
+$("dis").classList.toggle("hide",!SHOW_DISCLAIMER);
 const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof"];
 let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
 const one=a=>a[Math.floor(Math.random()*a.length)];
@@ -306,7 +312,13 @@ onAuthStateChanged(auth,async u=>{
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.p));
 $("aTv").onclick=()=>go("work");
 $("aTr").onclick=()=>openChat(uid);
-$("aRe").onclick=()=>toast("Retrait non disponible");
+$("aRe").onclick=()=>{
+  $("rl").innerHTML="";
+  Object.keys(C).forEach(k=>{const b=document.createElement("button");b.className="cty";b.textContent=C[k][0]+"  "+C[k][1];b.onclick=()=>toast("Retrait non disponible");$("rl").appendChild(b)});
+  $("ret").classList.remove("hide");
+};
+$("rc").onclick=()=>$("ret").classList.add("hide");
+$("ret").onclick=e=>{if(e.target===$("ret"))$("ret").classList.add("hide")};
 $("eye").onclick=()=>{hidden=!hidden;render()};
 $("bon").onclick=async()=>{
   const T=today();
