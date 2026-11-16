@@ -128,6 +128,8 @@ button:disabled{opacity:.5}
       <button class="act" id="aTv"><i>💼</i>Travaux</button>
     </div>
     <div class="card bonus"><div><b>Bonus du jour</b><small>300 – 800 FCFA · une fois par jour</small></div><button id="bon">Collecter</button></div>
+    <div class="card bonus hide" id="gf" style="background:linear-gradient(135deg,#14447A,#1D6FA5);color:#fff"><div><b id="gfT">Bonus spécial</b><small id="gfS"></small></div><button id="gfB" style="background:#fff;color:#14447A">Collecter</button></div>
+    <div class="card bonus hide" id="rlc"><div><b>🎡 Roulette bonus</b><small>Tu as fini tes 15 questions : tente ta chance !</small></div><button id="rlGo">Jouer</button></div>
     <div class="stats">
       <div class="card"><b id="sOk">0</b><span>Bonnes réponses</span></div>
       <div class="card"><b id="sGain">0</b><span>Gains (FCFA)</span></div>
@@ -146,6 +148,7 @@ button:disabled{opacity:.5}
     <div class="card" style="margin-top:0"><div class="tag" id="tag"></div><div class="q" id="q"></div><div class="msg" id="msg"></div></div>
     <div id="opts"></div>
     <button class="full hide" id="next">Phrase suivante</button>
+    <button class="full hide" id="rlB" style="background:#B7791F">🎡 Tourner la roulette bonus</button>
   </section>
 
   <section id="chat" class="page">
@@ -161,7 +164,23 @@ button:disabled{opacity:.5}
     <div class="stats"><div class="card"><b id="stW">0</b><span>Actifs (7 jours)</span></div><div class="card"><b id="stQ">0</b><span>Bonnes réponses</span></div></div>
     <h2 style="margin-top:18px">Messages</h2><div class="card" style="margin-top:0" id="al"></div>
     <h2 style="margin-top:18px">Classement des joueurs</h2><div class="card" style="margin-top:0" id="pl"></div>
-    <button class="full" id="rcp">📋 Copier le classement</button></section>
+    <button class="full" id="rcp">📋 Copier le classement</button>
+    <h2 style="margin-top:18px">Bonus spécial pour tous</h2>
+    <div class="card" style="margin-top:0">
+      <div class="fld"><input id="gT" maxlength="60" placeholder="Titre (ex : 🎂 1 an d’AfriQuiz)"></div>
+      <div class="fld" style="margin-top:8px"><input id="gA" type="number" inputmode="numeric" placeholder="Montant en FCFA (ex : 10000)"></div>
+      <button class="full" id="gGo">🎁 Lancer le bonus</button>
+      <button class="full" id="gOff" style="background:var(--mut)">Arrêter le bonus</button>
+      <div class="note" style="margin-top:10px">Chaque joueur le reçoit une seule fois, en appuyant sur « Collecter » sur son accueil.</div>
+    </div>
+    <h2 style="margin-top:18px">Roulette bonus</h2>
+    <div class="card" style="margin-top:0">
+      <div class="note" id="roSt">Roulette désactivée.</div>
+      <button class="full" id="roTom">🎡 Activer pour demain</button>
+      <button class="full" id="roNow" style="background:#B7791F">Activer aujourd’hui</button>
+      <button class="full" id="roOff" style="background:var(--mut)">Désactiver</button>
+      <div class="note" style="margin-top:10px">La roulette apparaît seulement ce jour-là, après les 15 questions. Un tirage par joueur : 100 % de gain à partir de 10 000 FCFA, 80 % en dessous.</div>
+    </div></section>
 
   <section id="team" class="page">
     <div class="rh" style="padding:26px 20px;text-align:left;border-radius:18px"><div class="rt" style="font-size:20px">Mon équipe</div><div class="rs">Apprenons l’Afrique ensemble</div></div>
@@ -196,6 +215,17 @@ button:disabled{opacity:.5}
   </nav>
 </div>
 <div id="ret" class="ov hide"><div class="sheet"><b style="font-size:18px">Retrait</b><div class="note" style="margin-top:4px">Choisis ton pays</div><div id="rl"></div><button class="full" id="rc" style="background:var(--mut)">Fermer</button></div></div>
+<div id="spin" class="ov hide"><div class="sheet" style="text-align:center">
+  <b style="font-size:18px">🎡 Roulette bonus</b>
+  <div style="position:relative;width:240px;height:240px;margin:22px auto 12px">
+    <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:26px;z-index:2;color:var(--err)">▼</div>
+    <div id="wheel" style="width:100%;height:100%;border-radius:50%;border:6px solid var(--pri);transition:transform 4.5s cubic-bezier(.12,.6,.1,1)"></div>
+  </div>
+  <div class="note">🟡 Bonus de 10 000 FCFA · ⚪ Pas de chance</div>
+  <div class="msg" id="spMsg"></div>
+  <button class="full" id="spGo">Tourner</button>
+  <button class="full" id="spX" style="background:var(--mut)">Fermer</button>
+</div></div>
 <div id="toast"></div>
 
 <script type="module">
@@ -321,7 +351,7 @@ function render(){
 }
 const H=(t,a)=>[{t,a,d:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})},...(U.history||[])].slice(0,30);
 const pay=(a,t)=>({balance:U.balance+a,gain:U.gain+a,history:H(t,a)});
-async function save(p){await updateDoc(doc(db,"users",uid),p);Object.assign(U,p);render()}
+async function save(p){await updateDoc(doc(db,"users",uid),p);Object.assign(U,p);render();updateRoulette()}
 
 /* Authentification */
 function setHuman(v){human=v;$("chk").classList.toggle("on",v);$("go").disabled=!v;$("req").textContent=v?"● Validée":"● Requise";$("req").style.color=v?"var(--ok)":"var(--acc)";$("e1").className=v?"msg":"msg warn";$("e1").textContent=v?"":"Veuillez valider la vérification pour continuer"}
@@ -346,7 +376,7 @@ $("lgo").onclick=async()=>{
 };
 $("out").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,async u=>{
-  if(!u){unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
+  if(!u){$("gf").classList.add("hide");unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
   uid=u.uid;
   try{
     const s=await getDoc(doc(db,"users",uid));
@@ -356,7 +386,7 @@ onAuthStateChanged(auth,async u=>{
       U={...SD,balance:0,gain:0,ok:0,count:0,dayN:today(),bonusDay:0,history:[]};
       await setDoc(doc(db,"users",uid),U);
     }
-    SD=null;render();go("home");checkAdmin();
+    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();
   }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
 });
 
@@ -493,6 +523,65 @@ function loadAdm(){
 $("rcp").onclick=async()=>{
   const t="🏆 Classement AfriQuiz\n"+RK.join("\n");
   try{await navigator.clipboard.writeText(t);toast("Classement copié !")}catch(e){toast("Copie impossible.")}
+};
+
+/* Bonus spécial */
+let GIFT=null;
+async function loadGift(){
+  try{
+    const s=await getDoc(doc(db,"config","gift")),g=s.exists()?s.data():null;
+    if(g&&g.id&&g.id!==U.giftId&&g.amount>0){
+      GIFT=g;$("gfT").textContent=g.title||"Bonus spécial 🎉";
+      $("gfS").textContent="+"+Number(g.amount).toLocaleString("fr-FR")+" FCFA · une seule fois";$("gf").classList.remove("hide");
+    }else{GIFT=null;$("gf").classList.add("hide")}
+  }catch(e){GIFT=null;$("gf").classList.add("hide")}
+}
+$("gfB").onclick=async()=>{
+  if(!GIFT)return;const a=Number(GIFT.amount),t=GIFT.title||"Bonus spécial";
+  try{await save({giftId:GIFT.id,balance:U.balance+a,gain:U.gain+a,history:H(t,a)});toast("🎉 +"+a.toLocaleString("fr-FR")+" FCFA !");$("gf").classList.add("hide");GIFT=null}
+  catch(e){toast("Impossible pour le moment. Réessaie.")}
+};
+$("gGo").onclick=async()=>{
+  const a=parseInt($("gA").value,10),t=$("gT").value.trim()||"Bonus spécial 🎉";
+  if(!(a>0)){toast("Écris un montant.");return}
+  try{await setDoc(doc(db,"config","gift"),{id:"g"+Date.now(),amount:a,title:t});toast("Bonus lancé !")}catch(e){toast("Impossible de lancer le bonus.")}
+};
+$("gOff").onclick=async()=>{try{await setDoc(doc(db,"config","gift"),{id:"",amount:0,title:""});toast("Bonus arrêté.")}catch(e){toast("Erreur.")}};
+
+/* Roulette bonus */
+let RL=null;const LOSE=[3,8],WIN=[0,1,2,4,5,6,7,9];
+$("wheel").style.background="conic-gradient("+Array.from({length:10},(_,i)=>(LOSE.includes(i)?"#A9B4C6":(i%2?"#F4C95D":"#E0A526"))+" "+i*36+"deg "+(i+1)*36+"deg").join(",")+")";
+const rlReady=()=>!!(RL&&RL.day===today()&&U&&(U.rlDay||0)!==today()&&U.dayN===today()&&U.count>=LIMIT);
+function updateRoulette(){const r=rlReady();$("rlc").classList.toggle("hide",!r);$("rlB").classList.toggle("hide",!r)}
+function roStatus(){$("roSt").textContent=RL&&RL.day>0?"Roulette active le "+new Date(RL.day*864e5).toLocaleDateString("fr-FR",{timeZone:"UTC"})+".":"Roulette désactivée."}
+async function loadRoulette(){
+  try{const s=await getDoc(doc(db,"config","roulette"));RL=s.exists()?s.data():null}catch(e){RL=null}
+  updateRoulette();roStatus();
+}
+async function setRoulette(d){
+  try{await setDoc(doc(db,"config","roulette"),{day:d,amount:10000});RL={day:d,amount:10000};toast(d?"Roulette programmée.":"Roulette désactivée.");updateRoulette();roStatus()}
+  catch(e){toast("Impossible pour le moment.")}
+}
+$("roTom").onclick=()=>setRoulette(today()+1);$("roNow").onclick=()=>setRoulette(today());$("roOff").onclick=()=>setRoulette(0);
+$("rlGo").onclick=$("rlB").onclick=()=>{if(!rlReady())return;$("spMsg").textContent="";$("spGo").disabled=false;$("spGo").classList.remove("hide");$("spin").classList.remove("hide")};
+$("spX").onclick=()=>$("spin").classList.add("hide");
+$("spGo").onclick=async()=>{
+  if(!rlReady())return;$("spGo").disabled=true;
+  const amt=Number(RL.amount)||10000,win=U.balance>=10000?true:Math.random()<0.8;
+  const i=win?WIN[Math.floor(Math.random()*WIN.length)]:LOSE[Math.floor(Math.random()*LOSE.length)];
+  const target=(360-(i*36+18+Math.random()*20-10)+360)%360;
+  $("wheel").style.transform="rotate("+(1800+target)+"deg)";
+  await new Promise(r=>setTimeout(r,4700));
+  try{
+    const T=today();
+    await save(win?{rlDay:T,...pay(amt,"Roulette bonus")}:{rlDay:T});
+    $("spMsg").className="msg "+(win?"ok":"ko");
+    $("spMsg").textContent=win?"🎉 Bravo ! +"+amt.toLocaleString("fr-FR")+" FCFA":"Pas de chance cette fois… Merci d’avoir joué !";
+    $("spGo").classList.add("hide");
+  }catch(e){
+    toast("Résultat non enregistré. Réessaie.");
+    const w=$("wheel");w.style.transition="none";w.style.transform="rotate(0deg)";void w.offsetWidth;w.style.transition="";$("spGo").disabled=false;
+  }
 };
 
 /* Équipe */
