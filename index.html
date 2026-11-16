@@ -152,7 +152,7 @@ button:disabled{opacity:.5}
   </section>
 
   <section id="chat" class="page">
-    <div class="hdr"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div></div>
+    <div class="hdr"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div><button class="lnk" id="cqGen" style="display:none">🔑 Code Quiz</button></div>
     <div class="card note" id="chn" style="margin-top:10px">Utilise cette discussion pour signaler un problème ou poser une question à l’équipe. Tu peux joindre une capture d’écran du problème. N’envoie jamais ton mot de passe ni de preuve de paiement.</div>
     <div id="msgs"></div>
     <div id="prev" class="hide"></div>
@@ -225,6 +225,15 @@ button:disabled{opacity:.5}
   <div class="msg" id="spMsg"></div>
   <button class="full" id="spGo">Tourner</button>
   <button class="full" id="spX" style="background:var(--mut)">Fermer</button>
+</div></div>
+<div id="cq" class="ov hide"><div class="sheet" style="text-align:center">
+  <b style="font-size:18px">Insérer le code Quiz</b>
+  <div class="note" style="margin-top:6px">Écris à l’administrateur dans la discussion pour recevoir ton code Quiz, puis saisis-le ici.</div>
+  <div class="fld" style="margin-top:12px"><input id="cqI" maxlength="12" placeholder="Code Quiz" autocomplete="off" autocapitalize="characters"></div>
+  <div class="msg" id="cqM"></div>
+  <button class="full" id="cqOk">Valider</button>
+  <button class="full" id="cqChat" style="background:#B7791F">💬 Écrire à l’administrateur</button>
+  <button class="full" id="cqX" style="background:var(--mut)">Fermer</button>
 </div></div>
 <div id="toast"></div>
 
@@ -341,7 +350,7 @@ function go(p){
 }
 function render(){
   if(!U)return;
-  $("who").textContent=U.name;$("who2").textContent=U.name;
+  $("who").textContent=U.name+(U.winner?" 🏆":"");$("who2").textContent=U.name+(U.winner?" 🏆":"");
   const l=(U.name[0]||"?").toUpperCase();$("av").textContent=l;$("av2").textContent=l;
   $("bal").textContent=hidden?"••••":U.balance.toLocaleString("fr-FR");
   $("sOk").textContent=U.ok;$("sGain").textContent=U.gain.toLocaleString("fr-FR");
@@ -396,7 +405,7 @@ $("aTv").onclick=()=>go("work");
 $("aTr").onclick=()=>openChat(uid);
 $("aRe").onclick=()=>{
   $("rl").innerHTML="";
-  Object.keys(C).forEach(k=>{const b=document.createElement("button");b.className="cty";b.textContent=C[k][0]+"  "+C[k][1];b.onclick=()=>toast("Retrait non disponible");$("rl").appendChild(b)});
+  Object.keys(C).forEach(k=>{const b=document.createElement("button");b.className="cty";b.textContent=C[k][0]+"  "+C[k][1];b.onclick=()=>retraitPays();$("rl").appendChild(b)});
   $("ret").classList.remove("hide");
 };
 $("rc").onclick=()=>$("ret").classList.add("hide");
@@ -447,8 +456,9 @@ async function checkAdmin(){
 function openChat(cid,label){
   chatUid=cid;imgData="";$("prev").classList.add("hide");$("mi").value="";
   const a=cid!==uid;
-  $("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a||!SHOW_NOTICE);
+  $("cqGen").style.display=a?"inline":"none";$("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a||!SHOW_NOTICE);
   $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
+  if(a)getDoc(doc(db,"users",cid)).then(s=>{if(s.exists())$("chs").textContent="Solde : "+(s.data().balance||0).toLocaleString("fr-FR")+" FCFA"+(s.data().winner?" · 🏆 vainqueur":"")}).catch(()=>{});
   show("chat");if(unM)unM();
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
     const m=$("msgs");m.innerHTML="";
@@ -503,7 +513,7 @@ function loadAdm(){
       const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
       if(last===t)td++;if(last>0&&last>=t-6)wk++;q+=x.ok||0;
       const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
-      const lab=(++k)+". "+(c?c[0]+" ":"")+(x.name||"Joueur")+" — "+(x.balance||0).toLocaleString("fr-FR")+" FCFA";RK.push(lab);n.textContent=lab;
+      const lab=(++k)+". "+(c?c[0]+" ":"")+(x.name||"Joueur")+(x.winner?" 🏆":"")+" — "+(x.balance||0).toLocaleString("fr-FR")+" FCFA";RK.push(lab);n.textContent=lab;
       const d0=t-last;
       m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id.slice(0,6).toUpperCase()]?" · "+rc[d.id.slice(0,6).toUpperCase()]+" invité(s)":"");
       r.append(n,m);l.appendChild(r);
@@ -582,6 +592,29 @@ $("spGo").onclick=async()=>{
     toast("Résultat non enregistré. Réessaie.");
     const w=$("wheel");w.style.transition="none";w.style.transform="rotate(0deg)";void w.offsetWidth;w.style.transition="";$("spGo").disabled=false;
   }
+};
+
+/* Code Quiz */
+const WINBAL=50000;
+function retraitPays(){
+  if(U.winner){toast("🏆 Tu es déjà vainqueur !");return}
+  if(U.balance>=WINBAL){$("ret").classList.add("hide");$("cqI").value="";$("cqM").textContent="";$("cqOk").classList.remove("hide");$("cq").classList.remove("hide")}
+  else toast("Retrait non disponible");
+}
+$("cqX").onclick=()=>$("cq").classList.add("hide");
+$("cqChat").onclick=()=>{$("cq").classList.add("hide");openChat(uid)};
+$("cqOk").onclick=async()=>{
+  const c=$("cqI").value.trim().toUpperCase();if(!c)return;
+  $("cqOk").disabled=true;
+  try{await save({winner:true,winCode:c});$("cqM").className="msg ok";$("cqM").textContent="🏆 Félicitations, tu es le vainqueur !";$("cqOk").classList.add("hide")}
+  catch(e){$("cqM").className="msg ko";$("cqM").textContent="Code incorrect. Demande ton code à l’administrateur."}
+  $("cqOk").disabled=false;
+};
+$("cqGen").onclick=async()=>{
+  const al="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";
+  for(const x of crypto.getRandomValues(new Uint8Array(8)))c+=al[x%al.length];
+  try{await setDoc(doc(db,"codes",chatUid),{code:c});$("mi").value="Ton code Quiz : "+c;toast("Code créé. Appuie sur Envoyer.")}
+  catch(e){toast("Impossible de créer le code.")}
 };
 
 /* Équipe */
