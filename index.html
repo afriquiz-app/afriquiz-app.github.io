@@ -160,7 +160,8 @@ button:disabled{opacity:.5}
     <div class="stats" style="margin-top:0"><div class="card"><b id="stT">0</b><span>Inscrits</span></div><div class="card"><b id="stD">0</b><span>Actifs aujourd’hui</span></div></div>
     <div class="stats"><div class="card"><b id="stW">0</b><span>Actifs (7 jours)</span></div><div class="card"><b id="stQ">0</b><span>Bonnes réponses</span></div></div>
     <h2 style="margin-top:18px">Messages</h2><div class="card" style="margin-top:0" id="al"></div>
-    <h2 style="margin-top:18px">Joueurs</h2><div class="card" style="margin-top:0" id="pl"></div></section>
+    <h2 style="margin-top:18px">Classement des joueurs</h2><div class="card" style="margin-top:0" id="pl"></div>
+    <button class="full" id="rcp">📋 Copier le classement</button></section>
 
   <section id="team" class="page">
     <div class="rh" style="padding:26px 20px;text-align:left;border-radius:18px"><div class="rt" style="font-size:20px">Mon équipe</div><div class="rs">Apprenons l’Afrique ensemble</div></div>
@@ -406,6 +407,7 @@ $("next").onclick=nextQ;
 
 /* Messagerie */
 let isAdm=false,chatUid=null,unM=null,unL=null,unU=null,imgData="";
+const RK=[];
 function unsub(){if(unM)unM();if(unL)unL();if(unU)unU();unM=unL=unU=null}
 async function checkAdmin(){
   try{const s=await getDoc(doc(db,"config","admin"));isAdm=s.exists()&&s.data().uid===uid}catch(e){isAdm=false}
@@ -465,13 +467,13 @@ $("file").onchange=()=>{
 };
 function loadAdm(){
   if(!isAdm)return;if(unL)unL();if(unU)unU();
-  unU=onSnapshot(query(collection(db,"users"),orderBy("gain","desc"),limit(500)),s=>{
-    const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0;const rc={};s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
+  unU=onSnapshot(query(collection(db,"users"),orderBy("balance","desc"),limit(500)),s=>{
+    const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0,k=0;const rc={};RK.length=0;s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
     s.forEach(d=>{
       const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
       if(last===t)td++;if(last>0&&last>=t-6)wk++;q+=x.ok||0;
       const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
-      n.textContent=(c?c[0]+" ":"")+(x.name||"Joueur");
+      const lab=(++k)+". "+(c?c[0]+" ":"")+(x.name||"Joueur")+" — "+(x.balance||0).toLocaleString("fr-FR")+" FCFA";RK.push(lab);n.textContent=lab;
       const d0=t-last;
       m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id.slice(0,6).toUpperCase()]?" · "+rc[d.id.slice(0,6).toUpperCase()]+" invité(s)":"");
       r.append(n,m);l.appendChild(r);
@@ -487,6 +489,11 @@ function loadAdm(){
     });
   },()=>toast("Liste indisponible."));
 }
+
+$("rcp").onclick=async()=>{
+  const t="🏆 Classement AfriQuiz\n"+RK.join("\n");
+  try{await navigator.clipboard.writeText(t);toast("Classement copié !")}catch(e){toast("Copie impossible.")}
+};
 
 /* Équipe */
 function renderTeam(){
