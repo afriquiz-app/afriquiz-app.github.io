@@ -336,7 +336,7 @@ const fr=x=>ERR[x&&x.code]||"Une erreur est survenue. Réessaie.";
 const today=()=>Math.floor((Date.now()+off)/864e5);
 const left=()=>LIMIT-(U.dayN===today()?U.count:0);
 const err=(id,t)=>{$(id).className="msg ko";$(id).textContent=t};
-function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2600)}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),3800)}
 (async()=>{try{const r=await fetch(location.href,{method:"HEAD",cache:"no-store"});const d=r.headers.get("date");if(d)off=new Date(d).getTime()-Date.now()}catch(e){}})();
 
 Object.keys(C).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=C[k][0]+" "+C[k][1]+" ("+C[k][2]+")";$("pays").appendChild(o)});
@@ -601,7 +601,7 @@ const WINBAL=50000;
 function retraitPays(){
   if(U.winner){toast("🏆 Tu es déjà vainqueur !");return}
   if(U.balance>=WINBAL){$("ret").classList.add("hide");$("cqI").value="";$("cqM").textContent="";$("cqOk").classList.remove("hide");$("cq").classList.remove("hide")}
-  else toast("Retrait non disponible");
+  else toast("Retrait disponible à partir de 50 000 FCFA. Il te manque "+(WINBAL-U.balance).toLocaleString("fr-FR")+" FCFA pour devenir le vainqueur 🏆");
 }
 $("cqX").onclick=()=>$("cq").classList.add("hide");
 $("cqChat").onclick=()=>{$("cq").classList.add("hide");openChat(uid)};
