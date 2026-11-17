@@ -184,14 +184,15 @@ button:disabled{opacity:.5}
 
   <section id="team" class="page">
     <div class="rh" style="padding:26px 20px;text-align:left;border-radius:18px"><div class="rt" style="font-size:20px">Mon équipe</div><div class="rs">Apprenons l’Afrique ensemble</div></div>
-    <div class="stats"><div class="card"><b id="tOk">0</b><span>Bonnes réponses</span></div><div class="card"><b id="tDay">0/15</b><span>Questions aujourd’hui</span></div></div>
+    <div class="stats"><div class="card"><b id="tInv">0</b><span>Invités</span></div><div class="card"><b id="tGain">0</b><span>FCFA gagnés</span></div></div>
     <div class="card">
       <div class="hdr"><div class="si">🔗</div><b>Invite tes camarades</b></div>
-      <div class="sec" style="text-align:center"><small style="color:var(--mut);letter-spacing:1px;font-size:11px;font-weight:700">TON CODE</small><div id="tCode" style="font-size:24px;font-weight:800;letter-spacing:3px;margin-top:4px"></div></div>
       <div class="note" id="tLink" style="margin-top:10px;word-break:break-all;padding:10px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)"></div>
       <div class="acts" style="grid-template-columns:1fr 1fr"><button id="tCopy">📋 Copier</button><button id="tShare" style="background:#15803D">↗ Partager</button></div>
     </div>
-    <div class="card note"><b style="color:var(--tx)">Plus on est nombreux, plus on apprend !</b> Invite tes camarades de classe à relever le défi AfriQuiz et comparez vos connaissances sur l’Afrique.</div>
+    <div class="card"><div class="hdr"><div class="si">👥</div><b>Mes invités</b></div><div id="tRef" style="margin-top:8px"></div>
+      <button class="full" id="tCollect">💰 Collecter mes récompenses</button></div>
+    <div class="card note"><b style="color:var(--tx)">2 500 FCFA par invité(e) !</b> Chaque camarade qui s’inscrit avec ton lien et réussit 5 questions te rapporte 2 500 FCFA. Plus on est nombreux, plus on apprend !</div>
   </section>
   <section id="hist" class="page"><h2>Historique</h2><div class="card" style="margin-top:0" id="hl"></div></section>
 
@@ -240,7 +241,7 @@ button:disabled{opacity:.5}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,addDoc,query,orderBy,limit,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,addDoc,query,orderBy,limit,onSnapshot,serverTimestamp,where,getDocs,writeBatch}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
 const app=initializeApp({
   apiKey:"AIzaSyBkd1bZ-QNFgy7l2FtdDFXhoPEmPvacPfQ",
@@ -327,7 +328,7 @@ const $=i=>document.getElementById(i);
 const SHOW_DISCLAIMER=false; // mettre true pour réafficher « gains fictifs » sur l’accueil
 const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la discussion
 $("dis").classList.toggle("hide",!SHOW_DISCLAIMER);
-const REF=(new URLSearchParams(location.search).get("ref")||"").replace(/[^A-Za-z0-9]/g,"").slice(0,12);
+const REF=(new URLSearchParams(location.search).get("ref")||"").replace(/[^A-Za-z0-9]/g,"").slice(0,40);
 const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof"];
 let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
 const one=a=>a[Math.floor(Math.random()*a.length)];
@@ -394,6 +395,7 @@ onAuthStateChanged(auth,async u=>{
       if(!SD){await signOut(auth);return}
       U={...SD,balance:0,gain:0,ok:0,count:0,dayN:today(),bonusDay:0,history:[]};
       await setDoc(doc(db,"users",uid),U);
+      if(U.ref&&U.ref!==uid){try{await setDoc(doc(db,"referrals",uid),{inviter:U.ref,name:U.name,paid:false})}catch(e){}}
     }
     SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();
   }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
@@ -515,7 +517,7 @@ function loadAdm(){
       const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
       const lab=(++k)+". "+(c?c[0]+" ":"")+(x.name||"Joueur")+(x.winner?" 🏆":"")+" — "+(x.balance||0).toLocaleString("fr-FR")+" FCFA";RK.push(lab);n.textContent=lab;
       const d0=t-last;
-      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id.slice(0,6).toUpperCase()]?" · "+rc[d.id.slice(0,6).toUpperCase()]+" invité(s)":"");
+      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id]?" · "+rc[d.id]+" invité(s)":"");
       r.append(n,m);l.appendChild(r);
     });
     $("stT").textContent=s.size;$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
@@ -619,10 +621,34 @@ $("cqGen").onclick=async()=>{
 
 /* Équipe */
 function renderTeam(){
-  const code=(uid||"").slice(0,6).toUpperCase();
-  $("tCode").textContent=code;$("tLink").textContent=location.origin+location.pathname+"?ref="+code;
-  $("tOk").textContent=U.ok;$("tDay").textContent=(U.dayN===today()?U.count:0)+"/"+LIMIT;
+  $("tLink").textContent=location.origin+location.pathname+"?ref="+uid;
+  loadRefs();
 }
+let REFS=[];
+async function loadRefs(){
+  try{const s=await getDocs(query(collection(db,"referrals"),where("inviter","==",uid)));REFS=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){REFS=[]}
+  const l=$("tRef");l.innerHTML=REFS.length?"":"<div class='note'>Personne n’a encore rejoint avec ton lien.</div>";
+  REFS.forEach(x=>{
+    const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
+    n.textContent=x.name||"Camarade";m.textContent=x.paid?"✅ 2 500 FCFA reçus":"⏳ En attente : il doit réussir 5 questions";
+    r.append(n,m);l.appendChild(r);
+  });
+  $("tInv").textContent=REFS.length;$("tGain").textContent=(REFS.filter(x=>x.paid).length*2500).toLocaleString("fr-FR");
+}
+$("tCollect").onclick=async()=>{
+  let n=0;const todo=REFS.filter(x=>!x.paid);
+  for(const x of todo){
+    try{
+      const hist=H("Invitation : "+(x.name||"un camarade"),2500),b=writeBatch(db);
+      b.update(doc(db,"referrals",x.id),{paid:true});
+      b.update(doc(db,"users",uid),{refClaim:x.id,balance:U.balance+2500,gain:U.gain+2500,history:hist});
+      await b.commit();
+      U.balance+=2500;U.gain+=2500;U.history=hist;n++;render();updateRoulette();
+    }catch(e){}
+  }
+  toast(n?"🎉 +"+(n*2500).toLocaleString("fr-FR")+" FCFA !":(todo.length?"Rien à collecter pour l’instant : tes invités doivent réussir 5 questions.":"Aucune invitation à collecter."));
+  loadRefs();
+};
 const INV="Viens jouer à AfriQuiz et teste tes connaissances sur l’Afrique !";
 $("tCopy").onclick=async()=>{try{await navigator.clipboard.writeText(INV+" "+$("tLink").textContent);toast("Lien copié !")}catch(e){toast("Copie impossible. Sélectionne le lien.")}};
 $("tShare").onclick=async()=>{
