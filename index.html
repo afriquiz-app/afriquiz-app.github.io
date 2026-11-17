@@ -386,7 +386,7 @@ $("lgo").onclick=async()=>{
 };
 $("out").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,async u=>{
-  if(!u){$("gf").classList.add("hide");unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
+  if(!u){$("gf").classList.add("hide");stopBeat();unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
   uid=u.uid;
   try{
     const s=await getDoc(doc(db,"users",uid));
@@ -397,7 +397,7 @@ onAuthStateChanged(auth,async u=>{
       await setDoc(doc(db,"users",uid),U);
       if(U.ref&&U.ref!==uid){try{await setDoc(doc(db,"referrals",uid),{inviter:U.ref,name:U.name,paid:false})}catch(e){}}
     }
-    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();
+    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();startBeat();
   }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
 });
 
@@ -447,34 +447,65 @@ async function pick(i){
 $("next").onclick=nextQ;
 
 /* Messagerie */
-let isAdm=false,chatUid=null,unM=null,unL=null,unU=null,imgData="";
+let isAdm=false,chatUid=null,unM=null,unL=null,unU=null,unS=null,unC=null,imgData="",MSGS=[],META={},CHATS=[],SEEN={},hb=null;
 const RK=[];
-function unsub(){if(unM)unM();if(unL)unL();if(unU)unU();unM=unL=unU=null}
+function unsub(){if(unM)unM();if(unL)unL();if(unU)unU();if(unS)unS();if(unC)unC();unM=unL=unU=unS=unC=null}
 async function checkAdmin(){
   try{const s=await getDoc(doc(db,"config","admin"));isAdm=s.exists()&&s.data().uid===uid}catch(e){isAdm=false}
   $("navAdm").classList.toggle("hide",!isAdm);
   if(!isAdm)unL=onSnapshot(doc(db,"chats",uid),s=>{$("aTr").dataset.n=s.exists()&&s.data().unreadUser?"1":""},()=>{});
+}
+function presence(ms){
+  if(!ms)return "hors ligne";
+  const m=Math.floor((Date.now()-ms)/60000);
+  if(m<3)return "🟢 En ligne";
+  if(m<60)return "En ligne il y a "+m+" minutes";
+  const h=Math.floor(m/60);
+  return h<24?"En ligne il y a "+h+" h":"En ligne il y a "+Math.floor(h/24)+" j";
+}
+function drawMsgs(){
+  const a=chatUid!==uid,m=$("msgs");m.innerHTML="";
+  MSGS.forEach(x=>{
+    const b=document.createElement("div");b.className="b "+((x.from==="admin")===a?"me":"ot");
+    if(x.text){const t=document.createElement("div");t.textContent=x.text;b.appendChild(t)}
+    if(x.img){const i=document.createElement("img");i.src=x.img;b.appendChild(i)}
+    let txt=x.at?x.at.toDate().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"…";
+    if(a&&x.from==="admin"){const rd=META.userReadAt&&x.at&&x.at.toMillis()<=META.userReadAt.toMillis();txt+=rd?" · ✓✓ Lu":" · ✓ Envoyé"}
+    const t=document.createElement("small");t.textContent=txt;b.appendChild(t);m.appendChild(b);
+  });
+  m.scrollTop=m.scrollHeight;
 }
 function openChat(cid,label){
   chatUid=cid;imgData="";$("prev").classList.add("hide");$("mi").value="";
   const a=cid!==uid;
   $("cqGen").style.display=a?"inline":"none";$("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a||!SHOW_NOTICE);
   $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
-  if(a)getDoc(doc(db,"users",cid)).then(s=>{if(s.exists())$("chs").textContent="Solde : "+(s.data().balance||0).toLocaleString("fr-FR")+" FCFA"+(s.data().winner?" · 🏆 vainqueur":"")}).catch(()=>{});
-  show("chat");if(unM)unM();
+  show("chat");if(unM)unM();if(unS)unS();if(unC)unC();unM=unS=unC=null;MSGS=[];META={};drawMsgs();
+  if(a){
+    unS=onSnapshot(doc(db,"users",cid),s=>{if(s.exists()){const d=s.data();$("chs").textContent=presence(d.seen&&d.seen.toMillis?d.seen.toMillis():0)+" · Solde : "+(d.balance||0).toLocaleString("fr-FR")+" FCFA"+(d.winner?" · 🏆 vainqueur":"")}},()=>{});
+    unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};drawMsgs()},()=>{});
+  }
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
-    const m=$("msgs");m.innerHTML="";
-    s.forEach(d=>{
-      const x=d.data(),b=document.createElement("div");b.className="b "+((x.from==="admin")===a?"me":"ot");
-      if(x.text){const t=document.createElement("div");t.textContent=x.text;b.appendChild(t)}
-      if(x.img){const i=document.createElement("img");i.src=x.img;b.appendChild(i)}
-      const t=document.createElement("small");t.textContent=x.at?x.at.toDate().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"…";
-      b.appendChild(t);m.appendChild(b);
-    });
-    m.scrollTop=m.scrollHeight;
+    MSGS=s.docs.map(d=>d.data());drawMsgs();
+    if(!a&&MSGS.length&&MSGS[MSGS.length-1].from==="admin"&&document.visibilityState==="visible")updateDoc(doc(db,"chats",cid),{userReadAt:serverTimestamp()}).catch(()=>{});
   },()=>toast("Messagerie indisponible."));
   updateDoc(doc(db,"chats",cid),a?{unreadAdmin:false}:{unreadUser:false}).catch(()=>{});
 }
+function drawChats(){
+  const l=$("al");l.innerHTML=CHATS.length?"":"<div class='note'>Aucune conversation pour le moment.</div>";
+  CHATS.forEach(d=>{
+    const x=d.data(),r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
+    n.textContent=(x.unreadAdmin?"🔴 ":"")+(x.name||"Utilisateur");
+    m.textContent=presence(SEEN[d.id])+" · "+(x.mail||"")+" · "+(x.last||"");
+    r.append(n,m);r.onclick=()=>openChat(d.id,x.name||"Utilisateur");l.appendChild(r);
+  });
+}
+/* Présence */
+function beat(){if(!uid||document.visibilityState!=="visible")return;updateDoc(doc(db,"users",uid),{seen:serverTimestamp()}).catch(()=>{})}
+function startBeat(){stopBeat();beat();hb=setInterval(beat,120000)}
+function stopBeat(){if(hb){clearInterval(hb);hb=null}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")beat()});
+
 async function send(){
   const t=$("mi").value.trim();if(!t&&!imgData)return;
   $("send").disabled=true;
@@ -490,7 +521,7 @@ async function send(){
 }
 $("send").onclick=send;
 $("mi").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
-$("chb").onclick=()=>{if(unM){unM();unM=null}go("adm")};
+$("chb").onclick=()=>{if(unM){unM();unM=null}if(unS){unS();unS=null}if(unC){unC();unC=null}go("adm")};
 $("att").onclick=()=>$("file").click();
 $("prev").onclick=()=>{imgData="";$("prev").classList.add("hide")};
 $("file").onchange=()=>{
@@ -513,23 +544,17 @@ function loadAdm(){
     const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0,k=0;const rc={};RK.length=0;s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
     s.forEach(d=>{
       const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
+      SEEN[d.id]=x.seen&&x.seen.toMillis?x.seen.toMillis():0;
       if(last===t)td++;if(last>0&&last>=t-6)wk++;q+=x.ok||0;
       const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
       const lab=(++k)+". "+(c?c[0]+" ":"")+(x.name||"Joueur")+(x.winner?" 🏆":"")+" — "+(x.balance||0).toLocaleString("fr-FR")+" FCFA";RK.push(lab);n.textContent=lab;
       const d0=t-last;
-      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id]?" · "+rc[d.id]+" invité(s)":"");
+      m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id]?" · "+rc[d.id]+" invité(s)":"")+" · "+presence(SEEN[d.id]);
       r.append(n,m);l.appendChild(r);
     });
-    $("stT").textContent=s.size;$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
+    drawChats();$("stT").textContent=s.size;$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
   },()=>toast("Statistiques indisponibles."));
-  unL=onSnapshot(query(collection(db,"chats"),orderBy("lastAt","desc"),limit(100)),s=>{
-    const l=$("al");l.innerHTML=s.empty?"<div class='note'>Aucune conversation pour le moment.</div>":"";
-    s.forEach(d=>{
-      const x=d.data(),r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
-      n.textContent=(x.unreadAdmin?"🔴 ":"")+(x.name||"Utilisateur");m.textContent=(x.mail||"")+" · "+(x.last||"");
-      r.append(n,m);r.onclick=()=>openChat(d.id,x.name||"Utilisateur");l.appendChild(r);
-    });
-  },()=>toast("Liste indisponible."));
+  unL=onSnapshot(query(collection(db,"chats"),orderBy("lastAt","desc"),limit(100)),s=>{CHATS=s.docs;drawChats()},()=>toast("Liste indisponible."));
 }
 
 $("rcp").onclick=async()=>{
