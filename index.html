@@ -601,7 +601,7 @@ const WINBAL=50000;
 function retraitPays(){
   if(U.winner){toast("🏆 Tu es déjà vainqueur !");return}
   if(U.balance>=WINBAL){$("ret").classList.add("hide");$("cqI").value="";$("cqM").textContent="";$("cqOk").classList.remove("hide");$("cq").classList.remove("hide")}
-  else toast("Retrait disponible à partir de 50 000 FCFA. Il te manque "+(WINBAL-U.balance).toLocaleString("fr-FR")+" FCFA pour devenir le vainqueur 🏆");
+  else toast("Retrait disponible à partir de 50 000 FCFA");
 }
 $("cqX").onclick=()=>$("cq").classList.add("hide");
 $("cqChat").onclick=()=>{$("cq").classList.add("hide");openChat(uid)};
