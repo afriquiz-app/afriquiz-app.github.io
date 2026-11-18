@@ -447,7 +447,7 @@ async function pick(i){
 $("next").onclick=nextQ;
 
 /* Messagerie */
-let isAdm=false,chatUid=null,unM=null,unL=null,unU=null,unS=null,unC=null,imgData="",MSGS=[],META={},CHATS=[],SEEN={},hb=null;
+let isAdm=false,chatUid=null,unM=null,unL=null,unU=null,unS=null,unC=null,imgData="",MSGS=[],META={},CHATS=[],SEEN={},PAYS={},hb=null;
 const RK=[];
 function unsub(){if(unM)unM();if(unL)unL();if(unU)unU();if(unS)unS();if(unC)unC();unM=unL=unU=unS=unC=null}
 async function checkAdmin(){
@@ -482,7 +482,7 @@ function openChat(cid,label){
   $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
   show("chat");if(unM)unM();if(unS)unS();if(unC)unC();unM=unS=unC=null;MSGS=[];META={};drawMsgs();
   if(a){
-    unS=onSnapshot(doc(db,"users",cid),s=>{if(s.exists()){const d=s.data();$("chs").textContent=presence(d.seen&&d.seen.toMillis?d.seen.toMillis():0)+" · Solde : "+(d.balance||0).toLocaleString("fr-FR")+" FCFA"+(d.winner?" · 🏆 vainqueur":"")}},()=>{});
+    unS=onSnapshot(doc(db,"users",cid),s=>{if(s.exists()){const d=s.data(),c=C[d.pays];$("cht").textContent=(c?c[0]+" ":"")+label;$("chs").textContent=(c?c[1]+" · ":"")+presence(d.seen&&d.seen.toMillis?d.seen.toMillis():0)+" · Solde : "+(d.balance||0).toLocaleString("fr-FR")+" FCFA"+(d.winner?" · 🏆 vainqueur":"")}},()=>{});
     unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};drawMsgs()},()=>{});
   }
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
@@ -495,8 +495,8 @@ function drawChats(){
   const l=$("al");l.innerHTML=CHATS.length?"":"<div class='note'>Aucune conversation pour le moment.</div>";
   CHATS.forEach(d=>{
     const x=d.data(),r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
-    n.textContent=(x.unreadAdmin?"🔴 ":"")+(x.name||"Utilisateur");
-    m.textContent=presence(SEEN[d.id])+" · "+(x.mail||"")+" · "+(x.last||"");
+    const cc=C[PAYS[d.id]];n.textContent=(x.unreadAdmin?"🔴 ":"")+(cc?cc[0]+" ":"")+(x.name||"Utilisateur");
+    m.textContent=(cc?cc[1]+" · ":"")+presence(SEEN[d.id])+" · "+(x.mail||"")+" · "+(x.last||"");
     r.append(n,m);r.onclick=()=>openChat(d.id,x.name||"Utilisateur");l.appendChild(r);
   });
 }
@@ -544,7 +544,7 @@ function loadAdm(){
     const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0,k=0;const rc={};RK.length=0;s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
     s.forEach(d=>{
       const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
-      SEEN[d.id]=x.seen&&x.seen.toMillis?x.seen.toMillis():0;
+      SEEN[d.id]=x.seen&&x.seen.toMillis?x.seen.toMillis():0;PAYS[d.id]=x.pays;
       if(last===t)td++;if(last>0&&last>=t-6)wk++;q+=x.ok||0;
       const r=document.createElement("div"),n=document.createElement("b"),m=document.createElement("small");r.className="ai";
       const lab=(++k)+". "+(c?c[0]+" ":"")+(x.name||"Joueur")+(x.winner?" 🏆":"")+" — "+(x.balance||0).toLocaleString("fr-FR")+" FCFA";RK.push(lab);n.textContent=lab;
