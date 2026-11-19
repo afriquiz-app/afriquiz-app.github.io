@@ -153,7 +153,7 @@ button:disabled{opacity:.5}
   </section>
 
   <section id="chat" class="page">
-    <div class="hdr"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div><button class="lnk" id="cqGen" style="display:none">🔑 Code Quiz</button></div>
+    <div class="hdr" style="flex-wrap:wrap"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div><button class="lnk" id="cqGen" style="display:none">🔑 Code Quiz</button><button class="lnk" id="autoTg" style="display:none">🤖 Auto : ON</button></div>
     <div class="card note" id="chn" style="margin-top:10px">Utilise cette discussion pour signaler un problème ou poser une question à l’équipe. Tu peux joindre une capture d’écran du problème. N’envoie jamais ton mot de passe ni de preuve de paiement.</div>
     <div id="msgs"></div>
     <div id="prev" class="hide"></div>
@@ -495,12 +495,12 @@ function drawMsgs(){
 function openChat(cid,label){
   chatUid=cid;imgData="";$("prev").classList.add("hide");$("mi").value="";
   const a=cid!==uid;
-  $("cqGen").style.display=a?"inline":"none";$("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a||!SHOW_NOTICE);
+  $("autoTg").style.display=a?"inline":"none";$("autoTg").textContent="🤖 Auto : ON";$("cqGen").style.display=a?"inline":"none";$("chb").style.display=a?"inline":"none";$("chn").classList.toggle("hide",a||!SHOW_NOTICE);
   $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
   show("chat");if(unM)unM();if(unS)unS();if(unC)unC();unM=unS=unC=null;MSGS=[];META={};drawMsgs();
   if(a){
     unS=onSnapshot(doc(db,"users",cid),s=>{if(s.exists()){const d=s.data(),c=C[d.pays];$("cht").textContent=(c?c[0]+" ":"")+label;$("chs").textContent=(c?c[1]+" · ":"")+presence(d.seen&&d.seen.toMillis?d.seen.toMillis():0)+" · Solde : "+(d.balance||0).toLocaleString("fr-FR")+" FCFA"+(d.winner?" · 🏆 vainqueur":"")}},()=>{});
-    unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};drawMsgs()},()=>{});
+    unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};$("autoTg").textContent=META.autoOff?"🤖 Auto : OFF":"🤖 Auto : ON";drawMsgs()},()=>{});
   }
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
     MSGS=s.docs.map(d=>d.data());drawMsgs();
@@ -527,15 +527,24 @@ async function send(){
   const t=$("mi").value.trim();if(!t&&!imgData)return;
   $("send").disabled=true;
   try{
-    const a=chatUid!==uid,msg={from:a?"admin":"user",text:t,at:serverTimestamp()},first=!a&&MSGS.length===0;
+    const a=chatUid!==uid,msg={from:a?"admin":"user",text:t,at:serverTimestamp()};
     if(imgData)msg.img=imgData;
     if(!a)await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
     await addDoc(collection(db,"chats",chatUid,"messages"),msg);
     await updateDoc(doc(db,"chats",chatUid),{last:t||"📷 Capture d’écran",lastAt:serverTimestamp(),unreadAdmin:!a,unreadUser:a});
-    if(first){
+    if(!a){
       try{
-        const s=await getDoc(doc(db,"config","autoreply")),q=s.exists()?s.data():null;
-        if(q&&q.on&&q.text){await addDoc(collection(db,"chats",uid,"messages"),{from:"auto",text:q.text,at:serverTimestamp()});await updateDoc(doc(db,"chats",uid),{unreadUser:false})}
+        const cm=await getDoc(doc(db,"chats",uid)),meta=cm.exists()?cm.data():{},T=today();
+        if(!meta.autoOff&&meta.autoDay!==T){
+          for(const nm of (U.balance>=WINBAL?["quizmsg","autoreply"]:["autoreply"])){
+            const s=await getDoc(doc(db,"config",nm)),q=s.exists()?s.data():null;
+            if(q&&q.on&&q.text){
+              await addDoc(collection(db,"chats",uid,"messages"),{from:"auto",text:q.text,at:serverTimestamp()});
+              await updateDoc(doc(db,"chats",uid),{unreadUser:false,autoDay:T});
+              break;
+            }
+          }
+        }
       }catch(e){}
     }
     $("mi").value="";imgData="";$("prev").classList.add("hide");
@@ -666,8 +675,9 @@ $("cqX").onclick=()=>$("cq").classList.add("hide");
 $("cqChat").onclick=async()=>{
   try{
     const s=await getDoc(doc(db,"config","quizmsg")),q=s.exists()?s.data():null;
+    const cmm=await getDoc(doc(db,"chats",uid)),off=cmm.exists()&&cmm.data().autoOff;
     let done=null;try{done=localStorage.getItem("qm_"+uid)}catch(e){}
-    if(q&&q.on&&q.text&&done!==q.id){
+    if(q&&q.on&&q.text&&done!==q.id&&!off){
       await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
       await addDoc(collection(db,"chats",uid,"messages"),{from:"auto",text:q.text,at:serverTimestamp()});
       await updateDoc(doc(db,"chats",uid),{last:"🔑 Demande du code Quiz",lastAt:serverTimestamp(),unreadAdmin:true,unreadUser:false});
@@ -682,6 +692,11 @@ $("cqOk").onclick=async()=>{
   try{await save({winner:true,winCode:c});$("cqM").className="msg ok";$("cqM").textContent="🏆 Félicitations, tu es le vainqueur !";$("cqOk").classList.add("hide")}
   catch(e){$("cqM").className="msg ko";$("cqM").textContent="Code incorrect. Demande ton code à l’administrateur."}
   $("cqOk").disabled=false;
+};
+$("autoTg").onclick=async()=>{
+  const off=!META.autoOff;
+  try{await updateDoc(doc(db,"chats",chatUid),{autoOff:off});toast(off?"Message automatique désactivé pour ce compte.":"Message automatique activé pour ce compte.")}
+  catch(e){toast("Impossible pour le moment.")}
 };
 $("cqGen").onclick=async()=>{
   const al="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";
