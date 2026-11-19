@@ -219,6 +219,7 @@ button:disabled{opacity:.5}
       <div class="hdr"><div class="av" id="av2"></div><div class="hi"><small>Nom du compte</small><b id="who2"></b></div></div>
       <div class="note" id="inf" style="margin-top:10px"></div>
       <button class="full" id="chg">Changer de nom</button>
+      <button class="full" id="waProf" style="background:#25D366;color:#fff">📢 Rejoindre la chaîne WhatsApp</button>
       <button class="full" id="out" style="background:var(--mut)">Se déconnecter</button>
     </div>
   </section>
@@ -252,6 +253,13 @@ button:disabled{opacity:.5}
   <button class="full" id="cqOk">Valider</button>
   <button class="full" id="cqChat" style="background:#B7791F">🔑 Obtenez le code Quiz</button>
   <button class="full" id="cqX" style="background:var(--mut)">Fermer</button>
+</div></div>
+<div id="wa" class="ov hide" style="align-items:center;padding:18px"><div class="sheet" style="border-radius:18px;text-align:center;padding:0;overflow:hidden">
+  <div style="background:linear-gradient(135deg,#128C7E,#25D366);color:#fff;padding:26px 18px"><div style="font-size:46px">📢</div><div style="font-size:20px;font-weight:800;margin-top:6px">Chaîne WhatsApp AfriQuiz</div></div>
+  <div style="padding:18px"><b>Rejoins la chaîne officielle d’AfriQuiz !</b>
+  <div class="note" style="margin-top:6px">Reçois les annonces, les bonus et les nouveautés directement sur WhatsApp.</div>
+  <button class="full" id="waGo" style="background:#25D366;color:#fff">Rejoindre la chaîne WhatsApp</button>
+  <button class="full" id="waLater" style="background:var(--mut)">Plus tard</button></div>
 </div></div>
 <div id="toast"></div>
 
@@ -403,7 +411,7 @@ $("lgo").onclick=async()=>{
 };
 $("out").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,async u=>{
-  if(!u){$("gf").classList.add("hide");stopBeat();unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
+  if(!u){$("gf").classList.add("hide");$("wa").classList.add("hide");stopBeat();unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
   uid=u.uid;
   try{
     const s=await getDoc(doc(db,"users",uid));
@@ -414,7 +422,7 @@ onAuthStateChanged(auth,async u=>{
       await setDoc(doc(db,"users",uid),U);
       if(U.ref&&U.ref!==uid){try{await setDoc(doc(db,"referrals",uid),{inviter:U.ref,name:U.name,paid:false})}catch(e){}}
     }
-    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();startBeat();
+    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();startBeat();showWA();
   }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
 });
 
@@ -663,6 +671,13 @@ $("spGo").onclick=async()=>{
     const w=$("wheel");w.style.transition="none";w.style.transform="rotate(0deg)";void w.offsetWidth;w.style.transition="";$("spGo").disabled=false;
   }
 };
+
+/* Chaîne WhatsApp */
+const WA_LINK="https://whatsapp.com/channel/0029VbEApMd6WaKudO8sY00Y";
+function showWA(){let d=null;try{d=localStorage.getItem("wa_"+uid)}catch(e){}if(!d)$("wa").classList.remove("hide")}
+$("waGo").onclick=()=>{try{localStorage.setItem("wa_"+uid,"1")}catch(e){}window.open(WA_LINK,"_blank","noopener");$("wa").classList.add("hide")};
+$("waLater").onclick=()=>$("wa").classList.add("hide");
+$("waProf").onclick=()=>window.open(WA_LINK,"_blank","noopener");
 
 /* Code Quiz */
 const WINBAL=50000;
