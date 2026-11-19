@@ -27,6 +27,7 @@ button:disabled{opacity:.5}
 .fld{display:flex;align-items:center;gap:6px;background:var(--bg);border:2px solid var(--bd);border-radius:14px;padding:0 12px}
 .fld:focus-within{border-color:var(--pri)}
 .fld input,.fld select{border:0;background:transparent;padding:14px 4px}
+.fld textarea{width:100%;border:0;background:transparent;padding:12px 4px;font:inherit;font-size:16px;color:var(--tx);outline:none;resize:none}
 .eyeb{background:none;color:var(--mut);padding:4px;font-size:18px}
 .sec{margin-top:20px;border:1px solid var(--bd);border-radius:18px;padding:14px;background:var(--bg)}
 .sh{display:flex;align-items:center;gap:10px}.sh>div{flex:1}.sh small{display:block;font-size:11px;letter-spacing:1px;color:var(--mut);font-weight:700}
@@ -173,6 +174,22 @@ button:disabled{opacity:.5}
       <button class="full" id="gOff" style="background:var(--mut)">Arrêter le bonus</button>
       <div class="note" style="margin-top:10px">Chaque joueur le reçoit une seule fois, en appuyant sur « Collecter » sur son accueil.</div>
     </div>
+    <h2 style="margin-top:18px">Réponse automatique au 1er message</h2>
+    <div class="card" style="margin-top:0">
+      <div class="note">Envoyée à chaque personne qui t’écrit pour la première fois (cc, bonjour, salut…).</div>
+      <div class="fld" style="margin-top:8px"><textarea id="arT" rows="3" maxlength="900" placeholder="Ton message de réponse automatique"></textarea></div>
+      <div class="note" id="arSt" style="margin-top:8px">⏸ Désactivé</div>
+      <button class="full" id="arOn">✅ Activer</button>
+      <button class="full" id="arOff" style="background:var(--mut)">⏸ Désactiver</button>
+    </div>
+    <h2 style="margin-top:18px">Message « Obtenez le code Quiz »</h2>
+    <div class="card" style="margin-top:0">
+      <div class="note">Envoyé automatiquement à chaque joueur qui appuie sur « Obtenez le code Quiz ».</div>
+      <div class="fld" style="margin-top:8px"><textarea id="qmT" rows="3" maxlength="900" placeholder="Ton message pour le code Quiz"></textarea></div>
+      <div class="note" id="qmSt" style="margin-top:8px">⏸ Désactivé</div>
+      <button class="full" id="qmOn">✅ Activer</button>
+      <button class="full" id="qmOff" style="background:var(--mut)">⏸ Désactiver</button>
+    </div>
     <h2 style="margin-top:18px">Roulette bonus</h2>
     <div class="card" style="margin-top:0">
       <div class="note" id="roSt">Roulette désactivée.</div>
@@ -229,11 +246,11 @@ button:disabled{opacity:.5}
 </div></div>
 <div id="cq" class="ov hide"><div class="sheet" style="text-align:center">
   <b style="font-size:18px">Insérer le code Quiz</b>
-  <div class="note" style="margin-top:6px">Écris à l’administrateur dans la discussion pour recevoir ton code Quiz, puis saisis-le ici.</div>
+  <div class="note" style="margin-top:6px">Appuie sur « Obtenez le code Quiz » pour recevoir les instructions, puis saisis ton code ici.</div>
   <div class="fld" style="margin-top:12px"><input id="cqI" maxlength="12" placeholder="Code Quiz" autocomplete="off" autocapitalize="characters"></div>
   <div class="msg" id="cqM"></div>
   <button class="full" id="cqOk">Valider</button>
-  <button class="full" id="cqChat" style="background:#B7791F">💬 Écrire à l’administrateur</button>
+  <button class="full" id="cqChat" style="background:#B7791F">🔑 Obtenez le code Quiz</button>
   <button class="full" id="cqX" style="background:var(--mut)">Fermer</button>
 </div></div>
 <div id="toast"></div>
@@ -466,11 +483,11 @@ function presence(ms){
 function drawMsgs(){
   const a=chatUid!==uid,m=$("msgs");m.innerHTML="";
   MSGS.forEach(x=>{
-    const b=document.createElement("div");b.className="b "+((x.from==="admin")===a?"me":"ot");
+    const b=document.createElement("div");b.className="b "+(((x.from==="admin"||x.from==="auto")===a)?"me":"ot");
     if(x.text){const t=document.createElement("div");t.textContent=x.text;b.appendChild(t)}
     if(x.img){const i=document.createElement("img");i.src=x.img;b.appendChild(i)}
     let txt=x.at?x.at.toDate().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"…";
-    if(a&&x.from==="admin"){const rd=META.userReadAt&&x.at&&x.at.toMillis()<=META.userReadAt.toMillis();txt+=rd?" · ✓✓ Lu":" · ✓ Envoyé"}
+    if(a&&(x.from==="admin"||x.from==="auto")){const rd=META.userReadAt&&x.at&&x.at.toMillis()<=META.userReadAt.toMillis();txt+=rd?" · ✓✓ Lu":" · ✓ Envoyé"}
     const t=document.createElement("small");t.textContent=txt;b.appendChild(t);m.appendChild(b);
   });
   m.scrollTop=m.scrollHeight;
@@ -487,7 +504,7 @@ function openChat(cid,label){
   }
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
     MSGS=s.docs.map(d=>d.data());drawMsgs();
-    if(!a&&MSGS.length&&MSGS[MSGS.length-1].from==="admin"&&document.visibilityState==="visible")updateDoc(doc(db,"chats",cid),{userReadAt:serverTimestamp()}).catch(()=>{});
+    if(!a&&MSGS.length&&(MSGS[MSGS.length-1].from==="admin"||MSGS[MSGS.length-1].from==="auto")&&document.visibilityState==="visible")updateDoc(doc(db,"chats",cid),{userReadAt:serverTimestamp()}).catch(()=>{});
   },()=>toast("Messagerie indisponible."));
   updateDoc(doc(db,"chats",cid),a?{unreadAdmin:false}:{unreadUser:false}).catch(()=>{});
 }
@@ -510,11 +527,17 @@ async function send(){
   const t=$("mi").value.trim();if(!t&&!imgData)return;
   $("send").disabled=true;
   try{
-    const a=chatUid!==uid,msg={from:a?"admin":"user",text:t,at:serverTimestamp()};
+    const a=chatUid!==uid,msg={from:a?"admin":"user",text:t,at:serverTimestamp()},first=!a&&MSGS.length===0;
     if(imgData)msg.img=imgData;
     if(!a)await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
     await addDoc(collection(db,"chats",chatUid,"messages"),msg);
     await updateDoc(doc(db,"chats",chatUid),{last:t||"📷 Capture d’écran",lastAt:serverTimestamp(),unreadAdmin:!a,unreadUser:a});
+    if(first){
+      try{
+        const s=await getDoc(doc(db,"config","autoreply")),q=s.exists()?s.data():null;
+        if(q&&q.on&&q.text){await addDoc(collection(db,"chats",uid,"messages"),{from:"auto",text:q.text,at:serverTimestamp()});await updateDoc(doc(db,"chats",uid),{unreadUser:false})}
+      }catch(e){}
+    }
     $("mi").value="";imgData="";$("prev").classList.add("hide");
   }catch(e){toast("Message non envoyé. Réessaie.")}
   $("send").disabled=false;
@@ -538,8 +561,19 @@ $("file").onchange=()=>{
   };im.src=r.result};
   r.readAsDataURL(f);
 };
+function bindBox(k,name){
+  const T=$(k+"T"),St=$(k+"St"),show=g=>{St.textContent=g&&g.on&&g.text?"✅ Activé":"⏸ Désactivé"};
+  getDoc(doc(db,"config",name)).then(s=>{if(s.exists()){T.value=s.data().text||"";show(s.data())}else show(null)}).catch(()=>show(null));
+  $(k+"On").onclick=async()=>{
+    const t=T.value.trim();if(!t){toast("Écris d’abord le message.");return}
+    try{await setDoc(doc(db,"config",name),{on:true,text:t,id:"m"+Date.now()});show({on:true,text:t});toast("Message activé.")}catch(e){toast("Impossible pour le moment.")}
+  };
+  $(k+"Off").onclick=async()=>{
+    try{await setDoc(doc(db,"config",name),{on:false,text:T.value.trim(),id:"m"+Date.now()});show(null);toast("Message désactivé.")}catch(e){toast("Impossible pour le moment.")}
+  };
+}
 function loadAdm(){
-  if(!isAdm)return;if(unL)unL();if(unU)unU();
+  if(!isAdm)return;bindBox("ar","autoreply");bindBox("qm","quizmsg");if(unL)unL();if(unU)unU();
   unU=onSnapshot(query(collection(db,"users"),orderBy("balance","desc"),limit(500)),s=>{
     const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0,k=0;const rc={};RK.length=0;s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
     s.forEach(d=>{
@@ -629,7 +663,19 @@ function retraitPays(){
   else toast("Retrait disponible à partir de 50 000 FCFA");
 }
 $("cqX").onclick=()=>$("cq").classList.add("hide");
-$("cqChat").onclick=()=>{$("cq").classList.add("hide");openChat(uid)};
+$("cqChat").onclick=async()=>{
+  try{
+    const s=await getDoc(doc(db,"config","quizmsg")),q=s.exists()?s.data():null;
+    let done=null;try{done=localStorage.getItem("qm_"+uid)}catch(e){}
+    if(q&&q.on&&q.text&&done!==q.id){
+      await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
+      await addDoc(collection(db,"chats",uid,"messages"),{from:"auto",text:q.text,at:serverTimestamp()});
+      await updateDoc(doc(db,"chats",uid),{last:"🔑 Demande du code Quiz",lastAt:serverTimestamp(),unreadAdmin:true,unreadUser:false});
+      try{localStorage.setItem("qm_"+uid,q.id)}catch(e){}
+    }
+  }catch(e){}
+  $("cq").classList.add("hide");openChat(uid);
+};
 $("cqOk").onclick=async()=>{
   const c=$("cqI").value.trim().toUpperCase();if(!c)return;
   $("cqOk").disabled=true;
