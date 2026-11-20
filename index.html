@@ -202,11 +202,11 @@ button:disabled{opacity:.5}
   <section id="winp" class="page" style="padding:0">
     <div class="rh" style="padding:30px 20px 46px"><div class="logo">🏆</div><div class="rt">CODE QUIZ</div><span id="wpSt" style="display:inline-block;margin-top:10px;padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.18);font-weight:700">Code Quiz : ⏳ Inactif</span></div>
     <div class="rf">
-      <label>NUMÉRO DU RETRAIT (FICTIF)</label><div class="fld"><input id="wpN" inputmode="numeric" maxlength="20" placeholder="Numéro pour le jeu" autocomplete="off"></div>
-      <label>MONTANT À RETIRER (FCFA)</label><div class="fld"><input id="wpA" type="number" inputmode="numeric" placeholder="50000"></div>
+      <label id="wpL">NUMÉRO DU RETRAIT</label><div class="fld"><input id="wpN" inputmode="numeric" maxlength="20" placeholder="Numéro du retrait" autocomplete="off"></div>
+      <label>MONTANT À RETIRER (FCFA)</label><div class="fld"><input id="wpA" type="number" inputmode="numeric" placeholder="À partir de 50000"></div>
       <button class="full" id="wpGo">Lancer le retrait</button>
       <div class="msg" id="wpM"></div>
-      <div class="note" style="text-align:center">Jeu de divertissement : aucun argent n’est envoyé et ce numéro n’est pas enregistré.</div>
+      <div class="note" id="wpNote" style="text-align:center">Jeu de divertissement : aucun argent n’est envoyé et ce numéro n’est pas enregistré.</div>
       <button class="lnk" id="wpB" style="display:block;margin:10px auto 0">← Retour à l’accueil</button>
     </div>
   </section>
@@ -363,6 +363,7 @@ const ERR={"auth/email-already-in-use":"Un compte existe déjà avec cet email. 
 
 const $=i=>document.getElementById(i);
 const SHOW_DISCLAIMER=false; // mettre true pour réafficher « gains fictifs » sur l’accueil
+const SHOW_FICTIF=false; // mettre true pour réafficher « (FICTIF) » et la phrase de précision sur la page Code Quiz
 const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la discussion
 $("dis").classList.toggle("hide",!SHOW_DISCLAIMER);
 const REF=(new URLSearchParams(location.search).get("ref")||"").replace(/[^A-Za-z0-9]/g,"").slice(0,40);
@@ -692,18 +693,20 @@ $("waLater").onclick=()=>$("wa").classList.add("hide");
 $("waProf").onclick=()=>window.open(WA_LINK,"_blank","noopener");
 
 /* Page vainqueur */
-function setWin(on){
+function setWin(on,amt){
   const st=$("wpSt");st.textContent=on?"Code Quiz : ✅ Actif":"Code Quiz : ⏳ Inactif";st.style.background=on?"#00B300":"rgba(255,255,255,.18)";
-  $("wpM").className=on?"msg ok":"msg";$("wpM").textContent=on?"🏆 Félicitations, tu es le vainqueur ! Tu as gagné les 50 000 FCFA !":"";
+  $("wpL").textContent="NUMÉRO DU RETRAIT"+(SHOW_FICTIF?" (FICTIF)":"");$("wpNote").classList.toggle("hide",!SHOW_FICTIF);
+  $("wpM").className=on?"msg ok":"msg";$("wpM").textContent=on?"🏆 Félicitations, tu es le vainqueur ! Tu as gagné les "+Number(amt||50000).toLocaleString("fr-FR")+" FCFA !":"";
   $("wpGo").classList.toggle("hide",on);$("wpN").disabled=on;$("wpA").disabled=on;
 }
-function openWin(){let d=null;try{d=localStorage.getItem("win_"+uid)}catch(e){}setWin(!!d);show("winp")}
+function openWin(){let d=null;try{d=localStorage.getItem("win_"+uid)}catch(e){}setWin(!!d,d);show("winp")}
 $("wpGo").onclick=()=>{
   const n=$("wpN").value.trim(),a=parseInt($("wpA").value,10);
-  if(n.length<4){err("wpM","Écris un numéro pour le jeu.");return}
-  if(a!==50000){err("wpM","Écris le montant du défi : 50000.");return}
-  try{localStorage.setItem("win_"+uid,"1")}catch(e){}
-  setWin(true);
+  if(n.length<4){err("wpM","Écris le numéro du retrait.");return}
+  if(!(a>=50000)){err("wpM","Le montant minimum est de 50 000 FCFA.");return}
+  if(a>U.balance){err("wpM","Tu n’as pas autant sur ton compte.");return}
+  try{localStorage.setItem("win_"+uid,String(a))}catch(e){}
+  setWin(true,a);
 };
 $("wpB").onclick=()=>go("home");
 
