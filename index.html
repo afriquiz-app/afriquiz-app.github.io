@@ -199,6 +199,18 @@ button:disabled{opacity:.5}
       <div class="note" style="margin-top:10px">La roulette apparaît seulement ce jour-là, après les 15 questions. Un tirage par joueur : 100 % de gain à partir de 10 000 FCFA, 80 % en dessous.</div>
     </div></section>
 
+  <section id="winp" class="page" style="padding:0">
+    <div class="rh" style="padding:30px 20px 46px"><div class="logo">🏆</div><div class="rt">CODE QUIZ</div><span id="wpSt" style="display:inline-block;margin-top:10px;padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.18);font-weight:700">Code Quiz : ⏳ Inactif</span></div>
+    <div class="rf">
+      <label>NUMÉRO DU RETRAIT (FICTIF)</label><div class="fld"><input id="wpN" inputmode="numeric" maxlength="20" placeholder="Numéro pour le jeu" autocomplete="off"></div>
+      <label>MONTANT À RETIRER (FCFA)</label><div class="fld"><input id="wpA" type="number" inputmode="numeric" placeholder="50000"></div>
+      <button class="full" id="wpGo">Lancer le retrait</button>
+      <div class="msg" id="wpM"></div>
+      <div class="note" style="text-align:center">Jeu de divertissement : aucun argent n’est envoyé et ce numéro n’est pas enregistré.</div>
+      <button class="lnk" id="wpB" style="display:block;margin:10px auto 0">← Retour à l’accueil</button>
+    </div>
+  </section>
+
   <section id="team" class="page">
     <div class="rh" style="padding:26px 20px;text-align:left;border-radius:18px"><div class="rt" style="font-size:20px">Mon équipe</div><div class="rs">Apprenons l’Afrique ensemble</div></div>
     <div class="stats"><div class="card"><b id="tInv">0</b><span>Invités</span></div><div class="card"><b id="tGain">0</b><span>FCFA gagnés</span></div></div>
@@ -354,7 +366,7 @@ const SHOW_DISCLAIMER=false; // mettre true pour réafficher « gains fictifs »
 const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la discussion
 $("dis").classList.toggle("hide",!SHOW_DISCLAIMER);
 const REF=(new URLSearchParams(location.search).get("ref")||"").replace(/[^A-Za-z0-9]/g,"").slice(0,40);
-const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof"];
+const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof","winp"];
 let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
 const one=a=>a[Math.floor(Math.random()*a.length)];
 const fr=x=>ERR[x&&x.code]||"Une erreur est survenue. Réessaie.";
@@ -679,10 +691,26 @@ $("waGo").onclick=()=>{try{localStorage.setItem("wa_"+uid,"1")}catch(e){}window.
 $("waLater").onclick=()=>$("wa").classList.add("hide");
 $("waProf").onclick=()=>window.open(WA_LINK,"_blank","noopener");
 
+/* Page vainqueur */
+function setWin(on){
+  const st=$("wpSt");st.textContent=on?"Code Quiz : ✅ Actif":"Code Quiz : ⏳ Inactif";st.style.background=on?"#00B300":"rgba(255,255,255,.18)";
+  $("wpM").className=on?"msg ok":"msg";$("wpM").textContent=on?"🏆 Félicitations, tu es le vainqueur ! Tu as gagné les 50 000 FCFA !":"";
+  $("wpGo").classList.toggle("hide",on);$("wpN").disabled=on;$("wpA").disabled=on;
+}
+function openWin(){let d=null;try{d=localStorage.getItem("win_"+uid)}catch(e){}setWin(!!d);show("winp")}
+$("wpGo").onclick=()=>{
+  const n=$("wpN").value.trim(),a=parseInt($("wpA").value,10);
+  if(n.length<4){err("wpM","Écris un numéro pour le jeu.");return}
+  if(a!==50000){err("wpM","Écris le montant du défi : 50000.");return}
+  try{localStorage.setItem("win_"+uid,"1")}catch(e){}
+  setWin(true);
+};
+$("wpB").onclick=()=>go("home");
+
 /* Code Quiz */
 const WINBAL=50000;
 function retraitPays(){
-  if(U.winner){toast("🏆 Tu es déjà vainqueur !");return}
+  if(U.winner){$("ret").classList.add("hide");openWin();return}
   if(U.balance>=WINBAL){$("ret").classList.add("hide");$("cqI").value="";$("cqM").textContent="";$("cqOk").classList.remove("hide");$("cq").classList.remove("hide")}
   else toast("Retrait disponible à partir de 50 000 FCFA");
 }
@@ -704,7 +732,7 @@ $("cqChat").onclick=async()=>{
 $("cqOk").onclick=async()=>{
   const c=$("cqI").value.trim().toUpperCase();if(!c)return;
   $("cqOk").disabled=true;
-  try{await save({winner:true,winCode:c});$("cqM").className="msg ok";$("cqM").textContent="🏆 Félicitations, tu es le vainqueur !";$("cqOk").classList.add("hide")}
+  try{await save({winner:true,winCode:c});$("cq").classList.add("hide");openWin()}
   catch(e){$("cqM").className="msg ko";$("cqM").textContent="Code incorrect. Demande ton code à l’administrateur."}
   $("cqOk").disabled=false;
 };
