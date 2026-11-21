@@ -520,7 +520,11 @@ function openChat(cid,label){
   $("cht").textContent=a?label:"Discussion AfriQuiz";$("chs").textContent=a?"Conversation avec l’utilisateur":"Écrivez à l’équipe AfriQuiz";
   show("chat");if(unM)unM();if(unS)unS();if(unC)unC();unM=unS=unC=null;MSGS=[];META={};drawMsgs();
   if(a){
-    unS=onSnapshot(doc(db,"users",cid),s=>{if(s.exists()){const d=s.data(),c=C[d.pays];$("cht").textContent=(c?c[0]+" ":"")+label;$("chs").textContent=(c?c[1]+" · ":"")+presence(d.seen&&d.seen.toMillis?d.seen.toMillis():0)+" · Solde : "+(d.balance||0).toLocaleString("fr-FR")+" FCFA"+(d.winner?" · 🏆 vainqueur":"")}},()=>{});
+    unS=onSnapshot(doc(db,"users",cid),s=>{if(s.exists()){const d=s.data(),c=C[d.pays];$("cht").textContent=(c?c[0]+" ":"")+label;$("chs").textContent=(c?c[1]+" · ":"")+presence(d.seen&&d.seen.toMillis?d.seen.toMillis():0)+" · Solde : "+(d.balance||0).toLocaleString("fr-FR")+" FCFA"+(d.winner?" · 🏆 vainqueur":"");
+      $("actCQ").style.display=(a&&d.winner)?"inline":"none";
+      $("actCQ").textContent=d.codeActive?"✅ Code Quiz : Actif":"🔓 Activer le Code Quiz";
+      $("actCQ").dataset.state=d.codeActive?"on":"off";
+    }},()=>{});
     unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};$("autoTg").textContent=META.autoOff?"🤖 Auto : OFF":"🤖 Auto : ON";drawMsgs()},()=>{});
   }
   unM=onSnapshot(query(collection(db,"chats",cid,"messages"),orderBy("at"),limit(200)),s=>{
