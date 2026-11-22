@@ -290,7 +290,7 @@ button:disabled{opacity:.5}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,addDoc,query,orderBy,limit,onSnapshot,serverTimestamp,where,getDocs,writeBatch}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,addDoc,query,orderBy,limit,onSnapshot,serverTimestamp,where,getDocs,writeBatch,getCountFromServer}from"https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 
 const app=initializeApp({
   apiKey:"AIzaSyBkd1bZ-QNFgy7l2FtdDFXhoPEmPvacPfQ",
@@ -633,7 +633,8 @@ function bindBox(k,name){
 }
 function loadAdm(){
   if(!isAdm)return;bindBox("ar","autoreply");bindBox("qm","quizmsg");if(unL)unL();if(unU)unU();
-  unU=onSnapshot(query(collection(db,"users"),orderBy("balance","desc"),limit(500)),s=>{
+  getCountFromServer(collection(db,"users")).then(s=>{$("stT").textContent=s.data().count}).catch(()=>{});
+  unU=onSnapshot(query(collection(db,"users"),orderBy("balance","desc"),limit(3000)),s=>{
     const t=Math.floor(Date.now()/864e5);let td=0,wk=0,q=0,k=0;const rc={};RK.length=0;s.forEach(d=>{const r=d.data().ref;if(r)rc[r]=(rc[r]||0)+1});const l=$("pl");l.innerHTML=s.empty?"<div class='note'>Aucun joueur.</div>":"";
     s.forEach(d=>{
       const x=d.data(),last=Math.max(x.count>0?x.dayN||0:0,x.bonusDay||0),c=C[x.pays],today=x.dayN===t?x.count:0;
@@ -645,7 +646,7 @@ function loadAdm(){
       m.textContent="Aujourd’hui : "+today+"/15 · "+(x.ok||0)+" bonnes réponses · "+(last?"actif "+(d0<=0?"aujourd’hui":d0===1?"hier":"il y a "+d0+" j"):"n’a pas encore joué")+(rc[d.id]?" · "+rc[d.id]+" invité(s)":"")+" · "+presence(SEEN[d.id]);
       r.append(n,m);l.appendChild(r);
     });
-    drawChats();$("stT").textContent=s.size;$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
+    drawChats();$("stD").textContent=td;$("stW").textContent=wk;$("stQ").textContent=q;
   },()=>toast("Statistiques indisponibles."));
   unL=onSnapshot(query(collection(db,"chats"),orderBy("lastAt","desc"),limit(100)),s=>{CHATS=s.docs;drawChats()},()=>toast("Liste indisponible."));
 }
