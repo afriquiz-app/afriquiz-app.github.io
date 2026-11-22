@@ -717,7 +717,7 @@ $("spGo").onclick=async()=>{
 
 /* Chaîne WhatsApp */
 const WA_LINK="https://whatsapp.com/channel/0029VbEApMd6WaKudO8sY00Y";
-const TG_LINK="https://t.me/AfriQuiz001";
+const TG_LINK="https://t.me/AfriQuiz1";
 function showWA(){let d=null;try{d=localStorage.getItem("wa_"+uid)}catch(e){}if(!d)$("wa").classList.remove("hide")}
 $("waGo").onclick=()=>{try{localStorage.setItem("wa_"+uid,"1")}catch(e){}window.open(WA_LINK,"_blank","noopener");$("wa").classList.add("hide")};
 $("tgGo").onclick=()=>{try{localStorage.setItem("wa_"+uid,"1")}catch(e){}window.open(TG_LINK,"_blank","noopener");$("wa").classList.add("hide")};
