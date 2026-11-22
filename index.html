@@ -242,6 +242,7 @@ button:disabled{opacity:.5}
       <div class="note" id="inf" style="margin-top:10px"></div>
       <button class="full" id="chg">Changer de nom</button>
       <button class="full" id="waProf" style="background:#25D366;color:#fff">📢 Rejoindre la chaîne WhatsApp</button>
+      <button class="full" id="tgProf" style="background:#229ED9;color:#fff">📢 Rejoindre la chaîne Telegram</button>
       <button class="full" id="out" style="background:var(--mut)">Se déconnecter</button>
     </div>
   </section>
@@ -281,6 +282,7 @@ button:disabled{opacity:.5}
   <div style="padding:18px"><b>Rejoins la chaîne officielle d’AfriQuiz !</b>
   <div class="note" style="margin-top:6px">Reçois les annonces, les bonus et les nouveautés directement sur WhatsApp.</div>
   <button class="full" id="waGo" style="background:#25D366;color:#fff">Rejoindre la chaîne WhatsApp</button>
+  <button class="full" id="tgGo" style="background:#229ED9;color:#fff">Rejoindre la chaîne Telegram</button>
   <button class="full" id="waLater" style="background:var(--mut)">Plus tard</button></div>
 </div></div>
 <div id="toast"></div>
@@ -714,10 +716,13 @@ $("spGo").onclick=async()=>{
 
 /* Chaîne WhatsApp */
 const WA_LINK="https://whatsapp.com/channel/0029VbEApMd6WaKudO8sY00Y";
+const TG_LINK="https://t.me/AfriQuiz001";
 function showWA(){let d=null;try{d=localStorage.getItem("wa_"+uid)}catch(e){}if(!d)$("wa").classList.remove("hide")}
 $("waGo").onclick=()=>{try{localStorage.setItem("wa_"+uid,"1")}catch(e){}window.open(WA_LINK,"_blank","noopener");$("wa").classList.add("hide")};
+$("tgGo").onclick=()=>{try{localStorage.setItem("wa_"+uid,"1")}catch(e){}window.open(TG_LINK,"_blank","noopener");$("wa").classList.add("hide")};
 $("waLater").onclick=()=>$("wa").classList.add("hide");
 $("waProf").onclick=()=>window.open(WA_LINK,"_blank","noopener");
+$("tgProf").onclick=()=>window.open(TG_LINK,"_blank","noopener");
 
 /* Page vainqueur */
 let winUnsub=null,codeIsActive=false;
