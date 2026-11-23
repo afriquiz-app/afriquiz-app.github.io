@@ -285,6 +285,12 @@ button:disabled{opacity:.5}
   <button class="full" id="tgGo" style="background:#229ED9;color:#fff">Rejoindre la chaîne Telegram</button>
   <button class="full" id="waLater" style="background:var(--mut)">Plus tard</button></div>
 </div></div>
+<div id="upd" class="ov hide" style="align-items:center;padding:18px"><div class="sheet" style="text-align:center;border-radius:18px">
+  <b style="font-size:18px">⚠️ Mise à jour requise</b>
+  <div class="note" style="margin-top:10px">Votre compte demande la mise à jour. Écrivez avec les opérateurs AFRIQUIZ pour mettre à jour votre compte.</div>
+  <button class="full" id="updGo" style="background:#B7791F">📞 Contacter l’opérateur</button>
+  <button class="full" id="updX" style="background:var(--mut)">Fermer</button>
+</div></div>
 <div id="toast"></div>
 
 <script type="module">
@@ -380,7 +386,7 @@ const SHOW_NOTICE=false; // mettre true pour réafficher le message dans la disc
 $("dis").classList.toggle("hide",!SHOW_DISCLAIMER);
 const REF=(new URLSearchParams(location.search).get("ref")||"").replace(/[^A-Za-z0-9]/g,"").slice(0,40);
 const LIMIT=15,PAGES=["p1","plog","home","work","chat","adm","team","hist","prof","winp"];
-let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[];
+let U=null,uid=null,SD=null,off=0,hidden=false,cur=null,answered=false,human=false,idx=0,order=[],userUnsub=null;
 const one=a=>a[Math.floor(Math.random()*a.length)];
 const fr=x=>ERR[x&&x.code]||"Une erreur est survenue. Réessaie.";
 const today=()=>Math.floor((Date.now()+off)/864e5);
@@ -406,8 +412,34 @@ function render(){
   $("bal").textContent=hidden?"••••":U.balance.toLocaleString("fr-FR");
   $("sOk").textContent=U.ok;$("sGain").textContent=U.gain.toLocaleString("fr-FR");
   const c=C[U.pays];$("inf").textContent=(c?c[0]+" "+c[1]+" · ":"")+U.mail+" · "+U.tel;
-  const h=U.history||[];$("hl").innerHTML=h.length?"":"<div class='note'>Aucune opération pour le moment.</div>";
-  h.forEach(x=>{const d=document.createElement("div");d.className="item";const a=document.createElement("div");a.textContent=x.t;const s=document.createElement("small");s.textContent=x.d;a.appendChild(s);const b=document.createElement("b");b.textContent="+"+x.a+" FCFA";d.append(a,b);$("hl").appendChild(d)});
+  paintWinBadge();
+  const h=U.history||[],hl=$("hl");hl.innerHTML="";
+  if(U.pendingAmt>0){
+    const row=document.createElement("div");row.className="item";row.style.cssText="background:#FEF3C7;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:none";
+    const left=document.createElement("div");left.innerHTML="<b style='color:#92610A'>⏳ Retrait de "+U.pendingAmt.toLocaleString("fr-FR")+" FCFA en cours</b><br><small style='color:#92610A'>Numéro : "+(U.pendingNum||"")+"</small>";
+    const btn=document.createElement("button");btn.className="eyeb";btn.title="Alerte";btn.textContent="❗";btn.onclick=()=>$("upd").classList.remove("hide");
+    row.append(left,btn);hl.appendChild(row);
+  }else if(U.pendingDone){
+    const row=document.createElement("div");row.className="item";row.style.cssText="background:#DCFCE7;border-radius:10px;padding:10px 12px;margin-bottom:8px;border:none";
+    row.innerHTML="<b style='color:#15803D'>🏆 Félicitations, tu es le vainqueur ! Ton retrait de "+Number(U.lastWithdrawAmt||0).toLocaleString("fr-FR")+" FCFA a été confirmé.</b>";
+    hl.appendChild(row);
+  }
+  if(!h.length&&!(U.pendingAmt>0)&&!U.pendingDone){const note=document.createElement("div");note.className="note";note.textContent="Aucune opération pour le moment.";hl.appendChild(note)}
+  h.forEach(x=>{const d=document.createElement("div");d.className="item";const a=document.createElement("div");a.textContent=x.t;const s=document.createElement("small");s.textContent=x.d;a.appendChild(s);const b=document.createElement("b");b.textContent="+"+x.a+" FCFA";d.append(a,b);hl.appendChild(d)});
+}
+$("updX").onclick=()=>$("upd").classList.add("hide");
+$("updGo").onclick=async()=>{
+  $("upd").classList.add("hide");
+  try{
+    await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
+    await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"📞 Je contacte l’opérateur AFRIQUIZ pour la mise à jour de mon compte (retrait de "+Number(U.pendingAmt||0).toLocaleString("fr-FR")+" FCFA).",at:serverTimestamp()});
+    await updateDoc(doc(db,"chats",uid),{last:"Contact opérateur",lastAt:serverTimestamp(),unreadAdmin:true});
+  }catch(e){}
+  openChat(uid);
+};
+function watchUser(){
+  if(userUnsub)userUnsub();
+  userUnsub=onSnapshot(doc(db,"users",uid),s=>{if(!s.exists())return;Object.assign(U,s.data());render();updateRoulette()},()=>{});
 }
 const H=(t,a)=>[{t,a,d:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})},...(U.history||[])].slice(0,30);
 const pay=(a,t)=>({balance:U.balance+a,gain:U.gain+a,history:H(t,a)});
@@ -447,7 +479,7 @@ onAuthStateChanged(auth,async u=>{
       await setDoc(doc(db,"users",uid),U);
       if(U.ref&&U.ref!==uid){try{await setDoc(doc(db,"referrals",uid),{inviter:U.ref,name:U.name,paid:false})}catch(e){}}
     }
-    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();startBeat();showWA();
+    SD=null;render();go("home");checkAdmin();loadGift();loadRoulette();startBeat();showWA();watchUser();
   }catch(e){toast("Erreur de chargement. Vérifie ta connexion.")}
 });
 
@@ -536,8 +568,9 @@ function openChat(cid,label){
       $("actCQ").style.display=(a&&d.winner)?"inline":"none";
       $("actCQ").textContent=d.codeActive?"✅ Code Quiz : Actif":"🔓 Activer le Code Quiz";
       $("actCQ").dataset.state=d.codeActive?"on":"off";
-      $("addAcct").style.display=(a&&d.winner&&d.pendingAmt>0)?"inline":"none";
-      $("addAcct").textContent="🔄 Confirmer retrait de "+(d.pendingAmt||0).toLocaleString("fr-FR")+" FCFA";
+      $("addAcct").style.display=(a&&d.winner)?"inline":"none";
+      $("addAcct").textContent=d.pendingAmt>0?("🔄 Confirmer retrait de "+d.pendingAmt.toLocaleString("fr-FR")+" FCFA"):"✅ Marquer comme confirmé";
+      $("addAcct").dataset.pending=d.pendingAmt||0;
     }},()=>{});
     unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};$("autoTg").textContent=META.autoOff?"🤖 Auto : OFF":"🤖 Auto : ON";drawMsgs()},()=>{});
   }
@@ -752,14 +785,14 @@ $("wpGo").onclick=async()=>{
   if(U.pendingAmt>0){$("wpM").className="msg";$("wpM").textContent="Un retrait est déjà en cours. Direction Historique…";go("hist");return}
   $("wpGo").disabled=true;
   try{
-    await updateDoc(doc(db,"users",uid),{balance:U.balance-v.a,pendingAmt:v.a,pendingNum:v.n});
-    Object.assign(U,{balance:U.balance-v.a,pendingAmt:v.a,pendingNum:v.n});
+    const bal=U.balance-v.a;
+    await updateDoc(doc(db,"users",uid),{balance:bal,pendingAmt:v.a,pendingNum:v.n,pendingDone:false});
+    Object.assign(U,{balance:bal,pendingAmt:v.a,pendingNum:v.n,pendingDone:false});
     try{
       await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
       await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"💰 Retrait demandé : "+v.a.toLocaleString("fr-FR")+" FCFA (numéro : "+v.n+")",at:serverTimestamp()});
       await updateDoc(doc(db,"chats",uid),{last:"Retrait demandé",lastAt:serverTimestamp(),unreadAdmin:true});
     }catch(e){}
-    try{localStorage.setItem("retraitShow_"+uid,"1")}catch(e){}
     render();go("hist");
   }catch(e){err("wpM","Retrait non enregistré. Réessaie.")}
   $("wpGo").disabled=false;
@@ -808,9 +841,15 @@ $("cqOk").onclick=async()=>{
   $("cqOk").disabled=false;
 };
 $("addAcct").onclick=async()=>{
+  const pend=Number($("addAcct").dataset.pending)||0;
   try{
-    await updateDoc(doc(db,"users",chatUid),{pendingAmt:0,pendingNum:""});
-    $("addAcct").style.display="none";
+    if(pend>0){
+      await updateDoc(doc(db,"users",chatUid),{pendingAmt:0,pendingNum:"",pendingDone:true,lastWithdrawAmt:pend});
+    }else{
+      const raw=prompt("Montant confirmé pour ce joueur (FCFA) ?","");
+      const amt=parseInt(raw,10);if(!(amt>0))return;
+      await updateDoc(doc(db,"users",chatUid),{pendingDone:true,lastWithdrawAmt:amt});
+    }
     toast("Retrait confirmé !");
   }catch(e){toast("Impossible pour le moment.")}
 };
