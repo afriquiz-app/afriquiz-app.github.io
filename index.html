@@ -156,7 +156,7 @@ button:disabled{opacity:.5}
   </section>
 
   <section id="chat" class="page">
-    <div class="hdr" style="flex-wrap:wrap"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div><button class="lnk" id="cqGen" style="display:none">🔑 Code Quiz</button><button class="lnk" id="autoTg" style="display:none">🤖 Auto : ON</button><button class="lnk" id="actCQ" style="display:none">🔓 Activer le Code Quiz</button></div>
+    <div class="hdr" style="flex-wrap:wrap"><button class="lnk" id="chb" style="display:none">← Retour</button><div class="hi"><b id="cht">Discussion AfriQuiz</b><small id="chs">Écrivez à l’équipe AfriQuiz</small></div><button class="lnk" id="cqGen" style="display:none">🔑 Code Quiz</button><button class="lnk" id="autoTg" style="display:none">🤖 Auto : ON</button><button class="lnk" id="actCQ" style="display:none">🔓 Activer le Code Quiz</button><button class="lnk" id="addAcct" style="display:none">➕ Ajouter son compte</button></div>
     <div class="card note" id="chn" style="margin-top:10px">Utilise cette discussion pour signaler un problème ou poser une question à l’équipe. Tu peux joindre une capture d’écran du problème. N’envoie jamais ton mot de passe ni de preuve de paiement.</div>
     <div id="msgs"></div>
     <div id="prev" class="hide"></div>
@@ -216,6 +216,7 @@ button:disabled{opacity:.5}
       <button class="full" id="wpGo">Lancer le retrait</button>
       <button class="full" id="wpAct" style="background:#25D366;color:#fff">🔓 Activer votre Code Quiz</button>
       <div class="msg" id="wpM"></div>
+      <button class="full hide" id="wpUpd" style="background:#B7791F">🔄 Faire la mise à jour</button>
       <div class="note" id="wpNote" style="text-align:center">Jeu de divertissement : aucun argent n’est envoyé et ce numéro n’est pas enregistré.</div>
       <button class="lnk" id="wpB" style="display:block;margin:10px auto 0">← Retour à l’accueil</button>
     </div>
@@ -536,6 +537,9 @@ function openChat(cid,label){
       $("actCQ").style.display=(a&&d.winner)?"inline":"none";
       $("actCQ").textContent=d.codeActive?"✅ Code Quiz : Actif":"🔓 Activer le Code Quiz";
       $("actCQ").dataset.state=d.codeActive?"on":"off";
+      $("addAcct").style.display=(a&&d.winner)?"inline":"none";
+      $("addAcct").textContent=d.approved?"✅ Compte ajouté":"➕ Ajouter son compte";
+      $("addAcct").dataset.state=d.approved?"on":"off";
     }},()=>{});
     unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};$("autoTg").textContent=META.autoOff?"🤖 Auto : OFF":"🤖 Auto : ON";drawMsgs()},()=>{});
   }
@@ -726,7 +730,7 @@ $("waProf").onclick=()=>window.open(WA_LINK,"_blank","noopener");
 $("tgProf").onclick=()=>window.open(TG_LINK,"_blank","noopener");
 
 /* Page vainqueur */
-let winUnsub=null,codeIsActive=false;
+let winUnsub=null,codeIsActive=false,acctApproved=false;
 function paintWin(active){
   codeIsActive=active;
   const st=$("wpSt");st.textContent="Code Quiz : "+(active?"✅ Actif":"⏳ Inactif");st.style.background=active?"#00B300":"rgba(255,255,255,.18)";
@@ -736,7 +740,11 @@ function openWin(){
   show("winp");$("wpM").textContent="";
   try{const sn=localStorage.getItem("winNum_"+uid),sa=localStorage.getItem("winAmt_"+uid);$("wpN").value=sn||"";$("wpA").value=sa||""}catch(e){}
   if(winUnsub)winUnsub();
-  winUnsub=onSnapshot(doc(db,"users",uid),s=>paintWin(s.exists()&&s.data().codeActive===true),()=>{});
+  winUnsub=onSnapshot(doc(db,"users",uid),s=>{
+    const d=s.exists()?s.data():{};
+    paintWin(d.codeActive===true);
+    acctApproved=d.approved===true;
+  },()=>{});
 }
 function checkWpInputs(){
   const n=$("wpN").value.trim(),a=parseInt($("wpA").value,10);
@@ -747,8 +755,27 @@ function checkWpInputs(){
 }
 $("wpGo").onclick=()=>{
   const v=checkWpInputs();if(!v)return;
-  if(codeIsActive){$("wpM").className="msg ok";$("wpM").textContent="🏆 Félicitations, tu es le vainqueur ! Tu as gagné les "+v.a.toLocaleString("fr-FR")+" FCFA !"}
-  else{$("wpM").className="msg ko";$("wpM").textContent="⚠️ Active d’abord ton Code Quiz avec le bouton ci-dessous."}
+  if(!codeIsActive){
+    $("wpM").className="msg ko";$("wpM").textContent="⚠️ Active d’abord ton Code Quiz avec le bouton ci-dessous.";
+    $("wpUpd").classList.add("hide");
+  }else if(!acctApproved){
+    $("wpM").className="msg";$("wpM").innerHTML="⏳ Retrait en attente<br><small style='font-weight:400'>Votre compte demande la mise à jour.</small>";
+    $("wpUpd").classList.remove("hide");
+  }else{
+    $("wpM").className="msg ok";$("wpM").textContent="✅ Votre compte est actuellement ajouté, vous êtes le vainqueur ! Tu as gagné les "+v.a.toLocaleString("fr-FR")+" FCFA !";
+    $("wpUpd").classList.add("hide");
+  }
+};
+$("wpUpd").onclick=async()=>{
+  $("wpUpd").disabled=true;
+  try{
+    await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
+    await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"🔄 Mon compte demande la mise à jour (ajout du compte).",at:serverTimestamp()});
+    await updateDoc(doc(db,"chats",uid),{last:"Demande de mise à jour",lastAt:serverTimestamp(),unreadAdmin:true});
+    if(winUnsub){winUnsub();winUnsub=null}
+    openChat(uid);
+  }catch(e){toast("Demande non envoyée. Réessaie.")}
+  $("wpUpd").disabled=false;
 };
 $("wpAct").onclick=async()=>{
   const v=checkWpInputs();if(!v)return;
@@ -793,6 +820,14 @@ $("cqOk").onclick=async()=>{
   try{await save({winner:true,winCode:c});$("cq").classList.add("hide");openWin()}
   catch(e){$("cqM").className="msg ko";$("cqM").textContent="Code incorrect. Demande ton code à l’administrateur."}
   $("cqOk").disabled=false;
+};
+$("addAcct").onclick=async()=>{
+  const on=$("addAcct").dataset.state==="on";
+  try{
+    await updateDoc(doc(db,"users",chatUid),{approved:!on});
+    $("addAcct").textContent=on?"➕ Ajouter son compte":"✅ Compte ajouté";$("addAcct").dataset.state=on?"off":"on";
+    toast(on?"Compte retiré.":"Compte ajouté !");
+  }catch(e){toast("Impossible pour le moment.")}
 };
 $("actCQ").onclick=async()=>{
   const on=$("actCQ").dataset.state==="on";
