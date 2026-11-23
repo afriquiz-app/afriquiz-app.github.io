@@ -216,7 +216,6 @@ button:disabled{opacity:.5}
       <button class="full" id="wpGo">Lancer le retrait</button>
       <button class="full" id="wpAct" style="background:#25D366;color:#fff">🔓 Activer votre Code Quiz</button>
       <div class="msg" id="wpM"></div>
-      <button class="full hide" id="wpUpd" style="background:#B7791F">🔄 Faire la mise à jour</button>
       <div class="note" id="wpNote" style="text-align:center">Jeu de divertissement : aucun argent n’est envoyé et ce numéro n’est pas enregistré.</div>
       <button class="lnk" id="wpB" style="display:block;margin:10px auto 0">← Retour à l’accueil</button>
     </div>
@@ -437,7 +436,7 @@ $("lgo").onclick=async()=>{
 };
 $("out").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,async u=>{
-  if(!u){$("gf").classList.add("hide");$("wa").classList.add("hide");stopBeat();unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
+  if(!u){if(userUnsub){userUnsub();userUnsub=null}$("gf").classList.add("hide");$("wa").classList.add("hide");stopBeat();unsub();isAdm=false;$("navAdm").classList.add("hide");U=null;uid=null;cur=null;$("q").textContent="";$("opts").innerHTML="";show("p1");return}
   uid=u.uid;
   try{
     const s=await getDoc(doc(db,"users",uid));
@@ -537,9 +536,8 @@ function openChat(cid,label){
       $("actCQ").style.display=(a&&d.winner)?"inline":"none";
       $("actCQ").textContent=d.codeActive?"✅ Code Quiz : Actif":"🔓 Activer le Code Quiz";
       $("actCQ").dataset.state=d.codeActive?"on":"off";
-      $("addAcct").style.display=(a&&d.winner)?"inline":"none";
-      $("addAcct").textContent=d.approved?"✅ Compte ajouté":"➕ Ajouter son compte";
-      $("addAcct").dataset.state=d.approved?"on":"off";
+      $("addAcct").style.display=(a&&d.winner&&d.pendingAmt>0)?"inline":"none";
+      $("addAcct").textContent="🔄 Confirmer retrait de "+(d.pendingAmt||0).toLocaleString("fr-FR")+" FCFA";
     }},()=>{});
     unC=onSnapshot(doc(db,"chats",cid),s=>{META=s.exists()?s.data():{};$("autoTg").textContent=META.autoOff?"🤖 Auto : OFF":"🤖 Auto : ON";drawMsgs()},()=>{});
   }
@@ -730,21 +728,16 @@ $("waProf").onclick=()=>window.open(WA_LINK,"_blank","noopener");
 $("tgProf").onclick=()=>window.open(TG_LINK,"_blank","noopener");
 
 /* Page vainqueur */
-let winUnsub=null,codeIsActive=false,acctApproved=false;
-function paintWin(active){
-  codeIsActive=active;
-  const st=$("wpSt");st.textContent="Code Quiz : "+(active?"✅ Actif":"⏳ Inactif");st.style.background=active?"#00B300":"rgba(255,255,255,.18)";
+function paintWinBadge(){
+  const st=$("wpSt");if(!st)return;
+  const on=!!U.codeActive;
+  st.textContent="Code Quiz : "+(on?"✅ Actif":"⏳ Inactif");st.style.background=on?"#00B300":"rgba(255,255,255,.18)";
   $("wpL").textContent="NUMÉRO DU RETRAIT"+(SHOW_FICTIF?" (FICTIF)":"");$("wpNote").classList.toggle("hide",!SHOW_FICTIF);
 }
 function openWin(){
   show("winp");$("wpM").textContent="";
-  try{const sn=localStorage.getItem("winNum_"+uid),sa=localStorage.getItem("winAmt_"+uid);$("wpN").value=sn||"";$("wpA").value=sa||""}catch(e){}
-  if(winUnsub)winUnsub();
-  winUnsub=onSnapshot(doc(db,"users",uid),s=>{
-    const d=s.exists()?s.data():{};
-    paintWin(d.codeActive===true);
-    acctApproved=d.approved===true;
-  },()=>{});
+  try{const sn=localStorage.getItem("winNum_"+uid);$("wpN").value=sn||"";$("wpA").value=""}catch(e){}
+  paintWinBadge();
 }
 function checkWpInputs(){
   const n=$("wpN").value.trim(),a=parseInt($("wpA").value,10);
@@ -753,44 +746,37 @@ function checkWpInputs(){
   if(a>U.balance){err("wpM","Tu n’as pas autant sur ton compte.");return null}
   return{n,a};
 }
-$("wpGo").onclick=()=>{
+$("wpGo").onclick=async()=>{
   const v=checkWpInputs();if(!v)return;
-  if(!codeIsActive){
-    $("wpM").className="msg ko";$("wpM").textContent="⚠️ Active d’abord ton Code Quiz avec le bouton ci-dessous.";
-    $("wpUpd").classList.add("hide");
-  }else if(!acctApproved){
-    $("wpM").className="msg";$("wpM").innerHTML="⏳ Retrait en attente<br><small style='font-weight:400'>Votre compte demande la mise à jour.</small>";
-    $("wpUpd").classList.remove("hide");
-  }else{
-    $("wpM").className="msg ok";$("wpM").textContent="✅ Votre compte est actuellement ajouté, vous êtes le vainqueur ! Tu as gagné les "+v.a.toLocaleString("fr-FR")+" FCFA !";
-    $("wpUpd").classList.add("hide");
-  }
-};
-$("wpUpd").onclick=async()=>{
-  $("wpUpd").disabled=true;
+  if(!U.codeActive){$("wpM").className="msg ko";$("wpM").textContent="⚠️ Active d’abord ton Code Quiz avec le bouton ci-dessous.";return}
+  if(U.pendingAmt>0){$("wpM").className="msg";$("wpM").textContent="Un retrait est déjà en cours. Direction Historique…";go("hist");return}
+  $("wpGo").disabled=true;
   try{
-    await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
-    await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"🔄 Mon compte demande la mise à jour (ajout du compte).",at:serverTimestamp()});
-    await updateDoc(doc(db,"chats",uid),{last:"Demande de mise à jour",lastAt:serverTimestamp(),unreadAdmin:true});
-    if(winUnsub){winUnsub();winUnsub=null}
-    openChat(uid);
-  }catch(e){toast("Demande non envoyée. Réessaie.")}
-  $("wpUpd").disabled=false;
+    await updateDoc(doc(db,"users",uid),{balance:U.balance-v.a,pendingAmt:v.a,pendingNum:v.n});
+    Object.assign(U,{balance:U.balance-v.a,pendingAmt:v.a,pendingNum:v.n});
+    try{
+      await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
+      await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"💰 Retrait demandé : "+v.a.toLocaleString("fr-FR")+" FCFA (numéro : "+v.n+")",at:serverTimestamp()});
+      await updateDoc(doc(db,"chats",uid),{last:"Retrait demandé",lastAt:serverTimestamp(),unreadAdmin:true});
+    }catch(e){}
+    try{localStorage.setItem("retraitShow_"+uid,"1")}catch(e){}
+    render();go("hist");
+  }catch(e){err("wpM","Retrait non enregistré. Réessaie.")}
+  $("wpGo").disabled=false;
 };
 $("wpAct").onclick=async()=>{
   const v=checkWpInputs();if(!v)return;
   $("wpAct").disabled=true;
   try{
     await setDoc(doc(db,"chats",uid),{uid,name:U.name,mail:U.mail},{merge:true});
-    await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"💰 Demande de retrait : "+v.a.toLocaleString("fr-FR")+" FCFA (numéro : "+v.n+")",at:serverTimestamp()});
-    await updateDoc(doc(db,"chats",uid),{last:"Demande de retrait",lastAt:serverTimestamp(),unreadAdmin:true});
-    try{localStorage.setItem("winNum_"+uid,v.n);localStorage.setItem("winAmt_"+uid,String(v.a))}catch(e){}
-    if(winUnsub){winUnsub();winUnsub=null}
+    await addDoc(collection(db,"chats",uid,"messages"),{from:"user",text:"🔑 Demande d’activation du Code Quiz (montant visé : "+v.a.toLocaleString("fr-FR")+" FCFA, numéro : "+v.n+")",at:serverTimestamp()});
+    await updateDoc(doc(db,"chats",uid),{last:"Demande d’activation",lastAt:serverTimestamp(),unreadAdmin:true});
+    try{localStorage.setItem("winNum_"+uid,v.n)}catch(e){}
     openChat(uid);
   }catch(e){err("wpM","Demande non envoyée. Réessaie.")}
   $("wpAct").disabled=false;
 };
-$("wpB").onclick=()=>{if(winUnsub){winUnsub();winUnsub=null}go("home")};
+$("wpB").onclick=()=>go("home");
 
 /* Code Quiz */
 const WINBAL=50000;
@@ -822,11 +808,10 @@ $("cqOk").onclick=async()=>{
   $("cqOk").disabled=false;
 };
 $("addAcct").onclick=async()=>{
-  const on=$("addAcct").dataset.state==="on";
   try{
-    await updateDoc(doc(db,"users",chatUid),{approved:!on});
-    $("addAcct").textContent=on?"➕ Ajouter son compte":"✅ Compte ajouté";$("addAcct").dataset.state=on?"off":"on";
-    toast(on?"Compte retiré.":"Compte ajouté !");
+    await updateDoc(doc(db,"users",chatUid),{pendingAmt:0,pendingNum:""});
+    $("addAcct").style.display="none";
+    toast("Retrait confirmé !");
   }catch(e){toast("Impossible pour le moment.")}
 };
 $("actCQ").onclick=async()=>{
